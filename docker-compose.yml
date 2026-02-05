@@ -6,11 +6,11 @@ services:
       - "80:3000"
     environment:
       - DATABASE_URL=postgresql://user:pass@db:5432/rent_manager?schema=public
-      - WORKER_SECRET=${WORKER_SECRET}
-      - AUTH_SECRET=${AUTH_SECRET}
+      - WORKER_SECRET=rent-manager-worker-secret-123
+      - AUTH_SECRET=rent-manager-auth-secret-super-long-456
       - AUTH_TRUST_HOST=true
-      - NEXTAUTH_URL=${NEXTAUTH_URL}
-      - APP_BASE_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_URL=http://94.143.141.204
+      - APP_BASE_URL=http://94.143.141.204
     depends_on:
       - db
 
