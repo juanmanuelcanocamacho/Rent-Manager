@@ -15,6 +15,7 @@ export default async function LeasesPage() {
     });
 
     const rooms = await db.room.findMany({ where: { status: 'AVAILABLE' } });
+    rooms.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
     const tenants = await db.tenantProfile.findMany({ include: { user: true } });
 
     return (

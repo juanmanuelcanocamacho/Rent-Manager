@@ -23,7 +23,7 @@ export async function createLease(formData: FormData) {
         tenantId: formData.get('tenantId'),
         startDate: formData.get('startDate'),
         rentAmount: formData.get('rentAmountCents'),
-        duration: formData.get('duration'),
+        duration: formData.get('duration') || undefined,
     };
 
     const parsed = createLeaseSchema.parse(rawData);
