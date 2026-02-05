@@ -3,7 +3,7 @@ services:
     build: .
     restart: always
     ports:
-      - "3000:3000"
+      - "80:3000"
     environment:
       - DATABASE_URL=postgresql://user:pass@db:5432/rent_manager?schema=public
       - WORKER_SECRET=${WORKER_SECRET}
