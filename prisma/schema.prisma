@@ -26,6 +26,7 @@ enum InvoiceStatus {
   PENDING
   PAID
   OVERDUE
+  PAYMENT_PROCESSING
 }
 
 enum PaymentMethod {
@@ -66,7 +67,7 @@ model TenantProfile {
   userId         String   @unique
   fullName       String
   documentNumber String?
-  phoneE164      String
+  phoneE164      String?
   whatsappOptIn  Boolean  @default(false)
   generatedPassword String?
   notes          String?
@@ -116,6 +117,7 @@ model Invoice {
 
   lease         Lease            @relation(fields: [leaseId], references: [id])
   payment       Payment?
+  proof         PaymentProof?
   notifications NotificationLog[]
 }
 
@@ -127,6 +129,16 @@ model Payment {
   method      PaymentMethod
   note        String?
   createdAt   DateTime      @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+}
+
+model PaymentProof {
+  id        String        @id @default(cuid())
+  invoiceId String        @unique
+  method    PaymentMethod
+  notes     String?
+  createdAt DateTime      @default(now())
 
   invoice Invoice @relation(fields: [invoiceId], references: [id])
 }

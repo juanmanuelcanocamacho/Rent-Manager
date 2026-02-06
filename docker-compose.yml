@@ -5,12 +5,12 @@ services:
     ports:
       - "80:3000"
     environment:
-      - DATABASE_URL=postgresql://user:pass@db:5432/rent_manager?schema=public
-      - WORKER_SECRET=rent-manager-worker-secret-123
-      - AUTH_SECRET=rent-manager-auth-secret-super-long-456
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public
+      - WORKER_SECRET=${WORKER_SECRET}
+      - AUTH_SECRET=${AUTH_SECRET}
       - AUTH_TRUST_HOST=true
-      - NEXTAUTH_URL=http://94.143.141.204
-      - APP_BASE_URL=http://94.143.141.204
+      - NEXTAUTH_URL=${APP_URL}
+      - APP_BASE_URL=${APP_URL}
     depends_on:
       - db
 
@@ -18,9 +18,9 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: rent_manager
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:

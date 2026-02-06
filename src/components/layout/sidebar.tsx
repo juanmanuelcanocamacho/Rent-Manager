@@ -24,7 +24,14 @@ const navItems = [
     { href: '/reports', label: 'Reportes', icon: MessageSquare },
 ];
 
-export function Sidebar() {
+// Add props to Sidebar
+interface SidebarProps {
+    notificationCounts?: {
+        reports: number;
+    }
+}
+
+export function Sidebar({ notificationCounts }: SidebarProps) {
     const pathname = usePathname();
 
     return (
@@ -38,12 +45,14 @@ export function Sidebar() {
             <nav className="flex-1 p-4 space-y-2">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                    const showBadge = item.href === '/reports' && (notificationCounts?.reports ?? 0) > 0;
+
                     return (
                         <Button
                             key={item.href}
                             variant={isActive ? 'secondary' : 'ghost'}
                             className={cn(
-                                "w-full justify-start gap-3",
+                                "w-full justify-start gap-3 relative",
                                 isActive && "bg-secondary font-medium"
                             )}
                             asChild
@@ -51,6 +60,12 @@ export function Sidebar() {
                             <Link href={item.href}>
                                 <item.icon size={20} />
                                 {item.label}
+                                {showBadge && (
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 flex h-2.5 w-2.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                                    </span>
+                                )}
                             </Link>
                         </Button>
                     );

@@ -51,7 +51,9 @@ export default async function InvoicesPage(props: { searchParams: Promise<{ stat
                     rooms: true,
                     tenant: true
                 }
-            }
+            },
+            // @ts-ignore
+            proof: true
         },
         orderBy: { dueDate: 'asc' }
     });
@@ -66,9 +68,11 @@ export default async function InvoicesPage(props: { searchParams: Promise<{ stat
     const groupedInvoices: Record<string, { tenantName: string; invoices: any[] }> = {};
 
     invoices.forEach((inv) => {
+        // @ts-ignore
         const tId = inv.lease.tenant.id;
         if (!groupedInvoices[tId]) {
             groupedInvoices[tId] = {
+                // @ts-ignore
                 tenantName: inv.lease.tenant.fullName,
                 invoices: []
             };

@@ -2,6 +2,7 @@ import { getTenantProfileForSession } from '@/lib/rbac';
 import { db } from '@/lib/db';
 import { Card, Badge } from '@/components/ui/shared';
 import { formatMoney } from '@/lib/money';
+import { TenantInvoiceCard } from '@/components/invoices/tenant-invoice-card';
 
 export default async function TenantInvoicesPage() {
     const profile = await getTenantProfileForSession();
@@ -12,7 +13,7 @@ export default async function TenantInvoicesPage() {
             lease: { tenantId: profile.id }
         },
         include: { lease: { include: { rooms: true } } },
-        orderBy: { dueDate: 'desc' }
+        orderBy: { dueDate: 'asc' }
     });
 
     return (
@@ -24,26 +25,7 @@ export default async function TenantInvoicesPage() {
 
             <div className="space-y-4">
                 {invoices.map((inv) => (
-                    <Card key={inv.id} className="p-4 flex items-center justify-between">
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <span className="font-bold text-lg">{formatMoney(inv.amountCents)}</span>
-                                <Badge variant={inv.status === 'PAID' ? 'success' : inv.status === 'OVERDUE' ? 'destructive' : 'secondary'}>
-                                    {inv.status}
-                                </Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Vence: {inv.dueDate.toLocaleDateString()}
-                            </p>
-                        </div>
-                        <div className="text-right text-xs">
-                            {inv.paidAt ? (
-                                <span className="text-green-600">Pagado el {inv.paidAt.toLocaleDateString()}</span>
-                            ) : (
-                                <span className="text-muted-foreground">Pendiente</span>
-                            )}
-                        </div>
-                    </Card>
+                    <TenantInvoiceCard key={inv.id} invoice={inv as any} />
                 ))}
                 {invoices.length === 0 && <p className="text-muted-foreground">No tienes facturas.</p>}
             </div>

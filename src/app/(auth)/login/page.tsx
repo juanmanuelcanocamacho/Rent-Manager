@@ -1,17 +1,10 @@
-import { signIn } from "@/lib/auth";
+"use client";
+
+import { useActionState } from "react";
+import { login } from "@/actions/auth";
 
 export default function LoginPage() {
-  async function handleLogin(formData: FormData) {
-    "use server";
-    const email = String(formData.get("email") || "");
-    const password = String(formData.get("password") || "");
-
-    await signIn("credentials", {
-      email,
-      password,
-      redirectTo: "/dashboard",
-    });
-  }
+  const [state, formAction, isPending] = useActionState(login, undefined);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
@@ -23,13 +16,19 @@ export default function LoginPage() {
           <p className="text-muted-foreground mt-2">Bienvenido de nuevo</p>
         </div>
 
-        <form action={handleLogin} className="space-y-4">
+        <form action={formAction} className="space-y-4">
+          {state?.error && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 text-sm font-medium text-center">
+              {state.error}
+            </div>
+          )}
+
           <div className="space-y-2">
-            <label className="text-sm font-medium">Email</label>
+            <label className="text-sm font-medium">Usuario</label>
             <input
               name="email"
-              type="email"
-              placeholder="admin@example.com"
+              type="text"
+              placeholder="admin"
               required
               className="w-full px-4 py-2 rounded-lg border bg-background/50 focus:ring-2 focus:ring-primary focus:outline-none transition-all"
             />
@@ -48,9 +47,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full py-3 px-4 bg-primary text-primary-foreground font-bold rounded-lg shadow-lg hover:shadow-primary/50 hover:-translate-y-0.5 transition-all duration-200"
+            disabled={isPending}
+            className="w-full py-3 px-4 bg-primary text-primary-foreground font-bold rounded-lg shadow-lg hover:shadow-primary/50 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Iniciar Sesión
+            {isPending ? "Iniciando..." : "Iniciar Sesión"}
           </button>
         </form>
       </div>

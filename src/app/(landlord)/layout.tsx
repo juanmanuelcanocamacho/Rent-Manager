@@ -1,6 +1,7 @@
 import { MobileHeader, Sidebar } from "@/components/layout/sidebar";
+import { db } from "@/lib/db";
 
-export default function LandlordLayout({
+export default async function LandlordLayout({
     children,
 }: {
     children: React.ReactNode;

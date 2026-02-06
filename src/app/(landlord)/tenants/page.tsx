@@ -76,7 +76,8 @@ export default async function TenantsPage() {
                         </div>
                         <div>
                             <label className="text-sm font-medium">Email (Login)</label>
-                            <Input name="email" type="email" placeholder="juan@email.com" required />
+                            <Input name="email" type="email" placeholder="usuario@alquiler.com" />
+                            <p className="text-xs text-muted-foreground mt-1">Opcional. Si se deja vacío, se generará: nombre@alquiler.com</p>
                         </div>
                         <div>
                             <label className="text-sm font-medium">Nº Documento (Opcional)</label>
@@ -84,8 +85,8 @@ export default async function TenantsPage() {
                         </div>
                         <div>
                             <label className="text-sm font-medium">Teléfono (E.164)</label>
-                            <Input name="phone" placeholder="+34600123456" required />
-                            <p className="text-xs text-muted-foreground mt-1">Formato internacional requerido para WhatsApp.</p>
+                            <Input name="phone" placeholder="+34600123456" />
+                            <p className="text-xs text-muted-foreground mt-1">Opcional. Formato internacional requerido para WhatsApp.</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <input type="checkbox" name="whatsappOptIn" id="wa" className="rounded border-gray-300" />

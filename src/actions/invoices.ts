@@ -35,3 +35,36 @@ export async function markInvoicePaid(invoiceId: string, paymentMethod: 'CASH' |
 
     revalidatePath('/invoices');
 }
+
+export async function unmarkInvoicePaid(invoiceId: string) {
+    await requireLandlord();
+
+    const invoice = await db.invoice.findUnique({ where: { id: invoiceId } });
+    if (!invoice) throw new Error("Invoice not found");
+    if (invoice.status !== 'PAID') throw new Error("Invoice is not paid");
+
+    await db.$transaction(async (tx) => {
+        // Determine correct status (PENDING or OVERDUE)
+        const now = getNowInMadrid();
+        let newStatus: 'PENDING' | 'OVERDUE' = 'PENDING';
+        if (invoice.dueDate < now) {
+            newStatus = 'OVERDUE';
+        }
+
+        // Update Invoice
+        await tx.invoice.update({
+            where: { id: invoiceId },
+            data: {
+                status: newStatus,
+                paidAt: null,
+            }
+        });
+
+        // Delete Payment Record
+        await tx.payment.delete({
+            where: { invoiceId: invoiceId }
+        });
+    });
+
+    revalidatePath('/invoices');
+}
