@@ -15,6 +15,7 @@ interface Invoice {
     dueDate: Date;
     lease: {
         rooms: { name: string }[];
+        tenant: { fullName: string; phoneE164: string | null };
     };
     proof?: {
         id: string;
@@ -128,16 +129,42 @@ export function TenantInvoiceAccordion({ tenantName, invoices }: TenantInvoiceAc
                                     </div>
                                 </div>
                             ) : invoice.status !== 'PAID' ? (
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={async () => {
-                                        await markInvoicePaid(invoice.id);
-                                    }}
-                                    className="gap-2 border-green-500 text-green-600 hover:bg-green-50"
-                                >
-                                    <CheckCircle size={16} /> Marcar Pagada
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            const phone = invoice.lease.tenant.phoneE164?.replace('+', '') || '';
+                                            const tenantName = invoice.lease.tenant.fullName.split(' ')[0];
+                                            const dueDate = new Date(invoice.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+                                            const amount = formatMoney(invoice.amountCents);
+                                            const concept = invoice.lease.rooms.map(r => r.name).join(', ');
+
+                                            let text = '';
+                                            if (invoice.status === 'OVERDUE') {
+                                                text = `Hola ${tenantName}, te informo que la factura de ${concept} venció el ${dueDate} y tienes un saldo pendiente de ${amount}. Por favor realiza el pago lo antes posible.`;
+                                            } else {
+                                                text = `Hola ${tenantName}, te recuerdo que el alquiler de ${concept} vence el ${dueDate} por un monto de ${amount}. Saludos.`;
+                                            }
+
+                                            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+                                        }}
+                                        className={`gap-2 ${invoice.status === 'OVERDUE' ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50'}`}
+                                        title="Enviar mensaje por WhatsApp"
+                                    >
+                                        <MessageSquare size={16} /> {invoice.status === 'OVERDUE' ? 'Reclamar' : 'Recordar'}
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={async () => {
+                                            await markInvoicePaid(invoice.id);
+                                        }}
+                                        className="gap-2 border-green-500 text-green-600 hover:bg-green-50"
+                                    >
+                                        <CheckCircle size={16} /> Pagada
+                                    </Button>
+                                </div>
                             ) : (
                                 <Button
                                     variant="ghost"
@@ -155,7 +182,8 @@ export function TenantInvoiceAccordion({ tenantName, invoices }: TenantInvoiceAc
                         </Card>
                     ))}
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }

@@ -5,6 +5,7 @@ import { requireLandlord } from '@/lib/rbac';
 import { Badge, Button, Card } from '@/components/ui/shared';
 import { MessageSquare, XCircle, Send, AlertTriangle, Check, X, FileText } from 'lucide-react';
 import { formatMoney } from '@/lib/money';
+import ReportGenerator from '@/components/reports/ReportGenerator';
 
 export default async function ReportsPage() {
     await requireLandlord();
@@ -27,8 +28,17 @@ export default async function ReportsPage() {
         orderBy: { createdAt: 'desc' }
     });
 
+    // Fetch Tenants for Report Filter
+    const tenants = await db.tenantProfile.findMany({
+        select: { id: true, fullName: true },
+        orderBy: { fullName: 'asc' }
+    });
+
     return (
         <div className="space-y-10 animate-in fade-in">
+            {/* Report Generator */}
+            <ReportGenerator tenants={tenants} />
+
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-bold">Reportes y Validaciones</h1>

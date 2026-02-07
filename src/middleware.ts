@@ -1,16 +1,17 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { landlordRoutes, tenantRoutesPrefix } from "@/config/routes";
 
 export default auth((req) => {
     const { nextUrl } = req;
     const isLoggedIn = !!req.auth;
     const userRole = req.auth?.user?.role;
 
-    const isLandlordRoute = ['/dashboard', '/rooms', '/tenants', '/leases', '/invoices', '/reports'].some(path =>
-        nextUrl.pathname.startsWith(path) && !nextUrl.pathname.startsWith('/me')
+    const isLandlordRoute = landlordRoutes.some(path =>
+        nextUrl.pathname.startsWith(path) && !nextUrl.pathname.startsWith(tenantRoutesPrefix)
     );
 
-    const isTenantRoute = nextUrl.pathname.startsWith('/me');
+    const isTenantRoute = nextUrl.pathname.startsWith(tenantRoutesPrefix);
 
     console.log(`[Middleware] Path: ${nextUrl.pathname}, Role: ${userRole}, IsLandlord: ${isLandlordRoute}, IsTenant: ${isTenantRoute}`);
 

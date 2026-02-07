@@ -141,7 +141,7 @@ export default async function LeasesPage() {
                         </div>
                         <div>
                             <label className="text-sm font-medium">Renta (Bs)</label>
-                            <Input name="rentAmountCents" type="number" step="0.01" placeholder="350.50" required />
+                            <Input name="rentAmountCents" type="number" step="0.01" placeholder="350" required />
                         </div>
                         <Button type="submit" className="w-full">Crear y Generar Cuotas</Button>
                     </form>

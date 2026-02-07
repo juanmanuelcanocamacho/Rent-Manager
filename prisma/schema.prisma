@@ -58,6 +58,7 @@ model User {
   passwordHash  String
   role          Role
   createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt @default(now())
   
   tenantProfile TenantProfile?
 }
@@ -72,6 +73,7 @@ model TenantProfile {
   generatedPassword String?
   notes          String?
   createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt @default(now())
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   leases   Lease[]
@@ -84,6 +86,7 @@ model Room {
   status    RoomStatus @default(AVAILABLE)
   notes     String?
   createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt @default(now())
 
   leases Lease[]
 }
@@ -97,6 +100,7 @@ model Lease {
   billingDay      Int         // 1-31
   status          LeaseStatus @default(ACTIVE)
   createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt @default(now())
 
   rooms           Room[]
 
@@ -114,6 +118,7 @@ model Invoice {
   status      InvoiceStatus @default(PENDING)
   paidAt      DateTime?
   createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt @default(now())
 
   lease         Lease            @relation(fields: [leaseId], references: [id])
   payment       Payment?
@@ -129,6 +134,7 @@ model Payment {
   method      PaymentMethod
   note        String?
   createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt @default(now())
 
   invoice Invoice @relation(fields: [invoiceId], references: [id])
 }
@@ -151,6 +157,7 @@ model Message {
   status     MessageStatus @default(OPEN)
   adminReply String?
   createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt @default(now())
   repliedAt  DateTime?
 
   lease  Lease         @relation(fields: [leaseId], references: [id])
