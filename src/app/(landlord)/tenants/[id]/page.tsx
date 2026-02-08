@@ -47,7 +47,7 @@ export default async function EditTenantPage(props: { params: Promise<{ id: stri
                     </div>
                     <div>
                         <label className="text-sm font-medium">Teléfono (E.164)</label>
-                        <Input name="phone" defaultValue={tenant.phoneE164} required />
+                        <Input name="phone" defaultValue={tenant.phoneE164 ?? ""} required />
                         <p className="text-xs text-muted-foreground mt-1">Formato internacional requerido para WhatsApp.</p>
                     </div>
                     <div className="flex items-center gap-2">

@@ -44,9 +44,12 @@
     "typescript": "^5"
   },
   "scripts": {
+  "dev": "next dev",
+  "build": "next build",
   "start": "node server.js",
   "migrate:deploy": "prisma migrate deploy",
-  "start:prod": "npm run migrate:deploy && npm run start"
+  "start:prod": "npm run start"
 }
 
 }
+

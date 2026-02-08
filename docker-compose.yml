@@ -1,4 +1,5 @@
 services:
+
   db:
     image: postgres:15-alpine
     restart: always
@@ -14,21 +15,29 @@ services:
       timeout: 3s
       retries: 20
 
-  app:
-    build: .
-    restart: always
-    ports:
-      - "80:3000"
+  migrate:
+    build:
+      context: .
+      target: migrator
+    restart: "no"
     env_file:
       - .env
-    environment:
-      AUTH_TRUST_HOST: "true"
-      # Si quieres forzar database_url del env (opcional, ya va en .env)
-      # DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build:
+      context: .
+      target: runner
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   db_data:
-

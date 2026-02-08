@@ -50,3 +50,13 @@ ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
 CMD ["npm", "run", "start:prod"]
+# --- Migrator image (Prisma CLI v6 from node_modules, no Next build) ---
+FROM base AS migrator
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma
+RUN npm ci
+
+COPY . .
+CMD ["./node_modules/.bin/prisma", "migrate", "deploy"]
