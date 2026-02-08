@@ -1,3 +1,4 @@
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { createLease, endLease, deleteLease } from '@/actions/leases';
 import { db } from '@/lib/db';
 import { requireLandlord } from '@/lib/rbac';
@@ -72,27 +73,37 @@ export default async function LeasesPage() {
                                         <Button variant="secondary" size="sm" type="submit">Finalizar Contrato</Button>
                                     </form>
 
-                                    <form action={async () => {
-                                        'use server';
-                                        await deleteLease(lease.id);
-                                    }}>
-                                        <Button variant="destructive" size="sm" type="submit" className="px-3">
-                                            <Trash2 size={16} />
-                                        </Button>
-                                    </form>
+                                    <ConfirmDialog
+                                        trigger={
+                                            <Button variant="destructive" size="sm" className="px-3">
+                                                <Trash2 size={16} />
+                                            </Button>
+                                        }
+                                        title="Eliminar Contrato"
+                                        description="¿Estás seguro de eliminar este contrato? Se borrarán todas las facturas y datos asociados."
+                                        onConfirm={async () => {
+                                            'use server';
+                                            await deleteLease(lease.id);
+                                        }}
+                                    />
                                 </div>
                             )}
 
                             {lease.status !== 'ACTIVE' && (
                                 <div className="mt-4 flex justify-end">
-                                    <form action={async () => {
-                                        'use server';
-                                        await deleteLease(lease.id);
-                                    }}>
-                                        <Button variant="ghost" size="sm" type="submit" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-                                            <Trash2 size={16} className="mr-2" /> Eliminar Historial
-                                        </Button>
-                                    </form>
+                                    <ConfirmDialog
+                                        trigger={
+                                            <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                                                <Trash2 size={16} className="mr-2" /> Eliminar Historial
+                                            </Button>
+                                        }
+                                        title="Eliminar Historial"
+                                        description="¿Estás seguro de eliminar este historial permanentemente?"
+                                        onConfirm={async () => {
+                                            'use server';
+                                            await deleteLease(lease.id);
+                                        }}
+                                    />
                                 </div>
                             )}
                         </Card>

@@ -42,5 +42,11 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
-  }
+  },
+  "scripts": {
+  "start": "node server.js",
+  "migrate:deploy": "prisma migrate deploy",
+  "start:prod": "npm run migrate:deploy && npm run start"
+}
+
 }

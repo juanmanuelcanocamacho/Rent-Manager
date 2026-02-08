@@ -1,3 +1,4 @@
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { createTenant, deleteTenant } from '@/actions/tenants';
 import { db } from '@/lib/db';
 import { requireLandlord } from '@/lib/rbac';
@@ -51,14 +52,19 @@ export default async function TenantsPage() {
                                             <Pencil size={18} />
                                         </a>
                                     </Button>
-                                    <form action={async () => {
-                                        'use server';
-                                        await deleteTenant(tenant.id);
-                                    }}>
-                                        <Button variant="ghost" size="sm" type="submit" className="text-destructive hover:bg-destructive/10 hover:text-destructive p-2 h-auto">
-                                            <Trash2 size={18} />
-                                        </Button>
-                                    </form>
+                                    <ConfirmDialog
+                                        trigger={
+                                            <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 hover:text-destructive p-2 h-auto">
+                                                <Trash2 size={18} />
+                                            </Button>
+                                        }
+                                        title="Eliminar Inquilino"
+                                        description={`¿Estás seguro de eliminar a ${tenant.fullName}? Se borrarán contratos y facturas asociados.`}
+                                        onConfirm={async () => {
+                                            'use server';
+                                            await deleteTenant(tenant.id);
+                                        }}
+                                    />
                                 </div>
                             </div>
                         </Card>

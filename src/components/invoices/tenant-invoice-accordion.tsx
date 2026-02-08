@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Card, Button, Badge } from '@/components/ui/shared';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { formatMoney } from '@/lib/money';
 import { ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
 import { markInvoicePaid, unmarkInvoicePaid } from '@/actions/invoices';
@@ -105,18 +106,23 @@ export function TenantInvoiceAccordion({ tenantName, invoices }: TenantInvoiceAc
                                         </p>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={async () => {
-                                                if (confirm('¿Rechazar este pago? La factura volverá a estar pendiente.')) {
-                                                    await rejectPayment(invoice.proof!.id);
-                                                }
+                                        <ConfirmDialog
+                                            trigger={
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
+                                                >
+                                                    <X size={16} className="mr-1" /> Rechazar
+                                                </Button>
+                                            }
+                                            title="Rechazar Pago"
+                                            description="¿Estás seguro de rechazar este pago? La factura volverá a estar pendiente."
+                                            onConfirm={async () => {
+                                                await rejectPayment(invoice.proof!.id);
                                             }}
-                                            className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
-                                        >
-                                            <X size={16} className="mr-1" /> Rechazar
-                                        </Button>
+                                            variant="destructive"
+                                        />
                                         <Button
                                             size="sm"
                                             onClick={async () => {
@@ -166,18 +172,23 @@ export function TenantInvoiceAccordion({ tenantName, invoices }: TenantInvoiceAc
                                     </Button>
                                 </div>
                             ) : (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={async () => {
-                                        if (confirm('¿Estás seguro de que quieres deshacer este pago? Se borrará el registro de pago.')) {
-                                            await unmarkInvoicePaid(invoice.id);
-                                        }
+                                <ConfirmDialog
+                                    trigger={
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                        >
+                                            Deshacer Pago
+                                        </Button>
+                                    }
+                                    title="Deshacer Pago"
+                                    description="¿Estás seguro de que deseas deshacer este pago? La factura volverá a estar pendiente."
+                                    onConfirm={async () => {
+                                        await unmarkInvoicePaid(invoice.id);
                                     }}
-                                    className="gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                >
-                                    Deshacer Pago
-                                </Button>
+                                    variant="destructive"
+                                />
                             )}
                         </Card>
                     ))}

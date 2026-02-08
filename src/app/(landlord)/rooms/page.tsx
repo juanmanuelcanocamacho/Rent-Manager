@@ -1,3 +1,4 @@
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { createRoom, deleteRoom } from '@/actions/rooms';
 import { db } from '@/lib/db';
 import { requireLandlord } from '@/lib/rbac';
@@ -30,14 +31,19 @@ export default async function RoomsPage() {
                                 </div>
                                 <p className="text-sm text-muted-foreground">{room.notes}</p>
                             </div>
-                            <form action={async () => {
-                                'use server';
-                                await deleteRoom(room.id);
-                            }}>
-                                <Button variant="ghost" size="icon" type="submit" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                    <Trash2 size={18} />
-                                </Button>
-                            </form>
+                            <ConfirmDialog
+                                trigger={
+                                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                        <Trash2 size={18} />
+                                    </Button>
+                                }
+                                title="Eliminar Habitación"
+                                description={`¿Estás seguro de eliminar ${room.name}?`}
+                                onConfirm={async () => {
+                                    'use server';
+                                    await deleteRoom(room.id);
+                                }}
+                            />
                         </Card>
                     ))}
                     {rooms.length === 0 && <p className="text-muted-foreground italic">No hay propiedades registradas.</p>}
