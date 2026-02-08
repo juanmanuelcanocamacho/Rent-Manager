@@ -7,6 +7,23 @@ export default auth((req) => {
     const isLoggedIn = !!req.auth;
     const userRole = req.auth?.user?.role;
 
+    // Handle /me as a hub route - redirect based on role
+    const isMeRoute = nextUrl.pathname === "/me" || nextUrl.pathname.startsWith("/me/");
+
+    if (isMeRoute) {
+        if (!isLoggedIn) {
+            console.log('[Middleware] /me requires login, redirecting to /login');
+            return NextResponse.redirect(new URL('/login', nextUrl));
+        }
+        if (userRole === 'LANDLORD') {
+            console.log('[Middleware] LANDLORD accessing /me, redirecting to /dashboard');
+            return NextResponse.redirect(new URL('/dashboard', nextUrl));
+        }
+        // TENANT users are allowed to access /me
+        console.log('[Middleware] TENANT accessing /me, allowing access');
+        return NextResponse.next();
+    }
+
     const isLandlordRoute = landlordRoutes.some(path =>
         nextUrl.pathname.startsWith(path) && !nextUrl.pathname.startsWith(tenantRoutesPrefix)
     );
