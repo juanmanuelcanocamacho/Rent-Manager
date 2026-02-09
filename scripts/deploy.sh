@@ -15,6 +15,8 @@ docker compose up -d --build
 
 # Run database migrations
 echo "🗄️  Running database migrations..."
-docker compose exec -T app npx prisma migrate deploy
+# We use the specific migrate service instead of exec-ing into app
+# This avoids npx installing an incompatible Prisma version
+docker compose run --rm migrate
 
 echo "✅ Deployment completed successfully!"
