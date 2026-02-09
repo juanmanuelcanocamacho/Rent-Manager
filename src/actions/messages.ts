@@ -60,3 +60,12 @@ export async function closeMessage(messageId: string) {
     revalidatePath('/reports');
     revalidatePath('/me/messages'); // Tenant sees closed
 }
+
+export async function deleteMessage(messageId: string) {
+    await requireLandlord();
+    await db.message.delete({
+        where: { id: messageId }
+    });
+    revalidatePath('/reports');
+    revalidatePath('/me/messages');
+}

@@ -1,9 +1,9 @@
-import { replyMessage, closeMessage } from '@/actions/messages';
+import { replyMessage, closeMessage, deleteMessage } from '@/actions/messages';
 import { approvePayment, rejectPayment } from '@/actions/payments';
 import { db } from '@/lib/db';
 import { requireLandlord } from '@/lib/rbac';
 import { Badge, Button, Card } from '@/components/ui/shared';
-import { MessageSquare, XCircle, Send, AlertTriangle, Check, X, FileText } from 'lucide-react';
+import { MessageSquare, XCircle, Send, AlertTriangle, Check, X, FileText, Trash } from 'lucide-react';
 import { formatMoney } from '@/lib/money';
 import ReportGenerator from '@/components/reports/ReportGenerator';
 
@@ -146,7 +146,17 @@ function messagesDots(messages: any[]) {
                     <h3 className="font-bold text-sm">{msg.tenant.fullName}</h3>
                     <p className="text-xs text-muted-foreground">{msg.lease.rooms.map((r: any) => r.name).join(', ')}</p>
                 </div>
-                <Badge variant={msg.status === 'OPEN' ? 'warning' : 'secondary'} className="text-[10px]">{msg.status}</Badge>
+                <div className="flex items-center gap-2">
+                    <Badge variant={msg.status === 'OPEN' ? 'warning' : 'secondary'} className="text-[10px]">{msg.status}</Badge>
+                    <form action={async () => {
+                        'use server';
+                        await deleteMessage(msg.id);
+                    }}>
+                        <Button variant="ghost" size="sm" type="submit" className="text-muted-foreground hover:text-red-500 hover:bg-red-50 h-6 w-6 p-0 rounded-full" title="Borrar reporte">
+                            <Trash size={14} />
+                        </Button>
+                    </form>
+                </div>
             </div>
 
             <div className="bg-muted/30 p-3 rounded-lg text-sm mb-4 relative">
