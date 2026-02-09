@@ -1,4 +1,5 @@
 import { MobileHeader, Sidebar } from "@/components/layout/sidebar";
+import { BackButton } from "@/components/ui/back-button";
 import { db } from "@/lib/db";
 
 export default async function LandlordLayout({
@@ -13,6 +14,7 @@ export default async function LandlordLayout({
                 <MobileHeader />
                 <main className="flex-1 p-6 md:p-8 bg-muted/20">
                     <div className="mx-auto max-w-6xl">
+                        <BackButton />
                         {children}
                     </div>
                 </main>

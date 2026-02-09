@@ -86,14 +86,55 @@ export function Sidebar({ notificationCounts }: SidebarProps) {
     );
 }
 
-// Mobile Nav could be added later or simple hamburger menu. For now, focus on desktop sidebar + minimal mobile header.
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
+
 export function MobileHeader() {
+    const [isOpen, setIsOpen] = useState(false);
+    const pathname = usePathname();
+
     return (
-        <header className="md:hidden border-b bg-card p-4 flex items-center justify-between sticky top-0 z-50">
-            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-                Gestión Alquiler
-            </h1>
-            {/* Simple mobile menu trigger could go here */}
+        <header className="md:hidden border-b bg-card sticky top-0 z-50">
+            <div className="p-4 flex items-center justify-between bg-card">
+                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
+                    Gestión Alquiler
+                </h1>
+                <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
+                    {isOpen ? <X /> : <Menu />}
+                </Button>
+            </div>
+
+            {isOpen && (
+                <div className="absolute top-full left-0 right-0 bg-background border-b shadow-lg p-4 flex flex-col gap-2 animate-in slide-in-from-top-5 fade-in-20">
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                onClick={() => setIsOpen(false)}
+                                className={cn(
+                                    "flex items-center gap-3 p-3 rounded-md transition-colors",
+                                    isActive ? "bg-secondary font-medium" : "hover:bg-muted"
+                                )}
+                            >
+                                <item.icon size={20} />
+                                {item.label}
+                            </Link>
+                        );
+                    })}
+                    <div className="border-t my-2 pt-2">
+                        <form action={async () => {
+                            await logout();
+                        }}>
+                            <button type="submit" className="flex items-center gap-3 p-3 rounded-md text-destructive hover:bg-destructive/10 w-full text-left">
+                                <LogOut size={20} />
+                                Cerrar Sesión
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </header>
-    )
+    );
 }
