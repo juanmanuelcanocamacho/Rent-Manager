@@ -7,6 +7,128 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  role          Role
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now()) @updatedAt
+  tenantProfile TenantProfile?
+}
+
+model TenantProfile {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  fullName          String
+  documentNumber    String?
+  phoneE164         String?
+  whatsappOptIn     Boolean   @default(false)
+  generatedPassword String?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(now()) @updatedAt
+  leases            Lease[]
+  messages          Message[]
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Room {
+  id        String     @id @default(cuid())
+  name      String
+  status    RoomStatus @default(AVAILABLE)
+  notes     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
+  leases    Lease[]    @relation("LeaseToRoom")
+}
+
+model Lease {
+  id              String            @id @default(cuid())
+  tenantId        String
+  startDate       DateTime
+  endDate         DateTime?
+  rentAmountCents Int
+  billingDay      Int
+  status          LeaseStatus       @default(ACTIVE)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
+  invoices        Invoice[]
+  tenant          TenantProfile     @relation(fields: [tenantId], references: [id])
+  messages        Message[]
+  notifications   NotificationLog[]
+  rooms           Room[]            @relation("LeaseToRoom")
+}
+
+model Invoice {
+  id            String            @id @default(cuid())
+  leaseId       String
+  dueDate       DateTime
+  amountCents   Int
+  status        InvoiceStatus     @default(PENDING)
+  paidAt        DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @default(now()) @updatedAt
+  lease         Lease             @relation(fields: [leaseId], references: [id])
+  notifications NotificationLog[]
+  payment       Payment?
+  proof         PaymentProof?
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  invoiceId   String        @unique
+  paidDate    DateTime
+  amountCents Int
+  method      PaymentMethod
+  note        String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now()) @updatedAt
+  invoice     Invoice       @relation(fields: [invoiceId], references: [id])
+}
+
+model PaymentProof {
+  id        String        @id @default(cuid())
+  invoiceId String        @unique
+  method    PaymentMethod
+  notes     String?
+  createdAt DateTime      @default(now())
+  invoice   Invoice       @relation(fields: [invoiceId], references: [id])
+}
+
+model Message {
+  id         String        @id @default(cuid())
+  leaseId    String
+  tenantId   String
+  content    String
+  status     MessageStatus @default(OPEN)
+  adminReply String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @default(now()) @updatedAt
+  repliedAt  DateTime?
+  lease      Lease         @relation(fields: [leaseId], references: [id])
+  tenant     TenantProfile @relation(fields: [tenantId], references: [id])
+}
+
+model NotificationLog {
+  id                String             @id @default(cuid())
+  leaseId           String
+  invoiceId         String?
+  type              NotificationType
+  toPhone           String
+  payloadJson       Json
+  sentAt            DateTime           @default(now())
+  providerMessageId String?
+  status            NotificationStatus @default(SENT)
+  error             String?
+  sendDate          DateTime
+  invoice           Invoice?           @relation(fields: [invoiceId], references: [id])
+  lease             Lease              @relation(fields: [leaseId], references: [id])
+
+  @@unique([invoiceId, type, sendDate])
+  @@unique([leaseId, type, sendDate], name: "lease_type_date_unique")
+}
+
 enum Role {
   LANDLORD
   TENANT
@@ -50,142 +172,4 @@ enum NotificationType {
 enum NotificationStatus {
   SENT
   FAILED
-}
-
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  passwordHash  String
-  role          Role
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt @default(now())
-  
-  tenantProfile TenantProfile?
-}
-
-model TenantProfile {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  fullName       String
-  documentNumber String?
-  phoneE164      String?
-  whatsappOptIn  Boolean  @default(false)
-  generatedPassword String?
-  notes          String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt @default(now())
-
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  leases   Lease[]
-  messages Message[]
-}
-
-model Room {
-  id        String     @id @default(cuid())
-  name      String
-  status    RoomStatus @default(AVAILABLE)
-  notes     String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt @default(now())
-
-  leases Lease[]
-}
-
-model Lease {
-  id              String      @id @default(cuid())
-  tenantId        String
-  startDate       DateTime
-  endDate         DateTime?
-  rentAmountCents Int
-  billingDay      Int         // 1-31
-  status          LeaseStatus @default(ACTIVE)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt @default(now())
-
-  rooms           Room[]
-
-  tenant          TenantProfile @relation(fields: [tenantId], references: [id])
-  invoices        Invoice[]
-  messages        Message[]
-  notifications   NotificationLog[]
-}
-
-model Invoice {
-  id          String        @id @default(cuid())
-  leaseId     String
-  dueDate     DateTime
-  amountCents Int
-  status      InvoiceStatus @default(PENDING)
-  paidAt      DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt @default(now())
-
-  lease         Lease            @relation(fields: [leaseId], references: [id])
-  payment       Payment?
-  proof         PaymentProof?
-  notifications NotificationLog[]
-}
-
-model Payment {
-  id          String        @id @default(cuid())
-  invoiceId   String        @unique
-  paidDate    DateTime
-  amountCents Int
-  method      PaymentMethod
-  note        String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt @default(now())
-
-  invoice Invoice @relation(fields: [invoiceId], references: [id])
-}
-
-model PaymentProof {
-  id        String        @id @default(cuid())
-  invoiceId String        @unique
-  method    PaymentMethod
-  notes     String?
-  createdAt DateTime      @default(now())
-
-  invoice Invoice @relation(fields: [invoiceId], references: [id])
-}
-
-model Message {
-  id         String        @id @default(cuid())
-  leaseId    String
-  tenantId   String
-  content    String
-  status     MessageStatus @default(OPEN)
-  adminReply String?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt @default(now())
-  repliedAt  DateTime?
-
-  lease  Lease         @relation(fields: [leaseId], references: [id])
-  tenant TenantProfile @relation(fields: [tenantId], references: [id])
-}
-
-model NotificationLog {
-  id                String             @id @default(cuid())
-  leaseId           String
-  invoiceId         String?
-  type              NotificationType
-  toPhone           String
-  payloadJson       Json
-  sentAt            DateTime           @default(now())
-  providerMessageId String?
-  status            NotificationStatus @default(SENT)
-  error             String?
-  sendDate          DateTime
-  lease   Lease    @relation(fields: [leaseId], references: [id])
-  invoice Invoice? @relation(fields: [invoiceId], references: [id])
-
-  // Idempotency constraints
-  // For invoice reminders
-  @@unique([invoiceId, type, sendDate])
-  // For weekly lease summaries (invoiceId is null here theoretically, but Prisma unique constraints with nulls are tricky in some DBs, 
-  // though Postgres 15+ handles NULLs in UNIQUE as distinct. 
-  // However, the prompt asked for: unique([leaseId, type, sendDate]) when invoiceId is null.
-  // We can add a partial index in raw SQL or just add this constraint and rely on application logic to ensure we don't violate it.
-  // Or better, we always link leaseId.
-  @@unique([leaseId, type, sendDate], name: "lease_type_date_unique")
 }

@@ -20,17 +20,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             authorize: async (credentials) => {
                 const { email, password } = await loginSchema.parseAsync(credentials);
 
+                console.log(`[Auth] Attempting login for email: ${email}`);
+
                 const user = await db.user.findUnique({
                     where: { email },
                 });
 
                 if (!user) {
+                    console.log(`[Auth] User not found for email: ${email}`);
                     throw new Error("Invalid credentials");
                 }
 
+                console.log(`[Auth] User found for email: ${email}, Role: ${user.role}, HashPrefix: ${user.passwordHash.substring(0, 10)}...`);
+
                 const isValid = await bcrypt.compare(password, user.passwordHash);
 
+                console.log(`[Auth] Password validation result for ${email}: ${isValid}`);
+
                 if (!isValid) {
+                    console.log(`[Auth] Invalid password for email: ${email}`);
                     throw new Error("Invalid credentials");
                 }
 
