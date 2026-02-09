@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/shared";
 import { LogOut, LayoutDashboard } from "lucide-react";
 import { logout } from "@/actions/auth";
+import { BackButton } from "@/components/ui/back-button";
 
 export default function TenantLayout({
     children,
@@ -30,6 +31,7 @@ export default function TenantLayout({
 
             <main className="flex-1 py-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <BackButton />
                     {children}
                 </div>
             </main>
