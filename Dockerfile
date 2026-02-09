@@ -57,6 +57,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma
 RUN npm ci
+ENV PATH /app/node_modules/.bin:$PATH
 
 COPY . .
 CMD ["./node_modules/.bin/prisma", "migrate", "deploy"]
