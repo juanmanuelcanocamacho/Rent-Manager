@@ -3,6 +3,7 @@ import { createTenant, deleteTenant } from '@/actions/tenants';
 import { db } from '@/lib/db';
 import { requireLandlord } from '@/lib/rbac';
 import { Badge, Button, Card, Input } from '@/components/ui/shared';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { User, Phone, Trash2, Pencil } from 'lucide-react';
 
 export default async function TenantsPage() {
@@ -90,9 +91,9 @@ export default async function TenantsPage() {
                             <Input name="documentNumber" placeholder="DNI / NIE / Pasaporte" />
                         </div>
                         <div>
-                            <label className="text-sm font-medium">Teléfono (E.164)</label>
-                            <Input name="phone" placeholder="+34600123456" />
-                            <p className="text-xs text-muted-foreground mt-1">Opcional. Formato internacional requerido para WhatsApp.</p>
+                            <label className="text-sm font-medium">Teléfono (WhatsApp)</label>
+                            <PhoneInput name="phone" />
+                            <p className="text-xs text-muted-foreground mt-1">Selecciona el país y escribe el número.</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <input type="checkbox" name="whatsappOptIn" id="wa" className="rounded border-gray-300" />

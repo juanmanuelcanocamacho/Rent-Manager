@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-// Use localhost for running from the host machine, assuming port 5432 is exposed
+// Use localhost for running from the host machine
 // encoded password from user's .env: V9x%213Qp%237Lm%402Zr%245Tn%5E8Wk%264Hj%2A6Cq
 const databaseUrl = "postgresql://postgres:V9x%213Qp%237Lm%402Zr%245Tn%5E8Wk%264Hj%2A6Cq@localhost:5432/rentmanager?schema=public";
 

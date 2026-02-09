@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { requireLandlord } from '@/lib/rbac';
 import { Button, Card, Input } from '@/components/ui/shared';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { updateTenant } from '@/actions/tenants';
 import { redirect } from 'next/navigation';
 
@@ -46,9 +47,9 @@ export default async function EditTenantPage(props: { params: Promise<{ id: stri
                         <Input name="documentNumber" defaultValue={tenant.documentNumber || ''} placeholder="DNI / NIE / Pasaporte" />
                     </div>
                     <div>
-                        <label className="text-sm font-medium">Teléfono (E.164)</label>
-                        <Input name="phone" defaultValue={tenant.phoneE164 ?? ""} required />
-                        <p className="text-xs text-muted-foreground mt-1">Formato internacional requerido para WhatsApp.</p>
+                        <label className="text-sm font-medium">Teléfono (WhatsApp)</label>
+                        <PhoneInput name="phone" defaultValue={tenant.phoneE164} required />
+                        <p className="text-xs text-muted-foreground mt-1">Selecciona el país y escribe el número.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <input
