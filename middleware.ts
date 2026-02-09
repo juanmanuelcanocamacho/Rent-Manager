@@ -6,8 +6,6 @@ export default auth((req) => {
     const isLoggedIn = !!req.auth;
     const userRole = req.auth?.user?.role;
 
-    console.log(`[Middleware] Path: ${nextUrl.pathname}, LoggedIn: ${isLoggedIn}, Role: ${userRole}`);
-
     const isLandlordRoute = ['/dashboard', '/rooms', '/tenants', '/leases', '/invoices', '/messages'].some(path =>
         nextUrl.pathname.startsWith(path) && !nextUrl.pathname.startsWith('/me') // careful with prefix overlap if any
     );
