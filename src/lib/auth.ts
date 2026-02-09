@@ -10,8 +10,11 @@ const loginSchema = z.object({
     password: z.string().min(1),
 });
 
+const useSecureCookies = process.env.NODE_ENV === 'production' && process.env.AUTH_URL?.startsWith('https://');
+console.log(`[Auth Config] NODE_ENV: ${process.env.NODE_ENV}, AUTH_URL: ${process.env.AUTH_URL}, SecureCookies: ${useSecureCookies}`);
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
-    useSecureCookies: process.env.NODE_ENV === 'production' && process.env.AUTH_URL?.startsWith('https://'),
+    useSecureCookies,
     cookies: {
         sessionToken: {
             name: `${process.env.NODE_ENV === 'production' && process.env.AUTH_URL?.startsWith('https://') ? '__Secure-' : ''}next-auth.session-token`,
