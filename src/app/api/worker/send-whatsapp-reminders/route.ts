@@ -102,7 +102,7 @@ async function processNotification(invoice: any, type: NotificationType, sendDat
             payloadJson: { message },
             sendDate,
             status: status as any,
-            error,
+            failed: error,
             providerMessageId: sid
         }
     });
@@ -137,7 +137,7 @@ async function processReviewNotification(lease: any, type: NotificationType, sen
             payloadJson: { message },
             sendDate,
             status: status as any,
-            error,
+            failed: error,
             providerMessageId: sid
         }
     });
