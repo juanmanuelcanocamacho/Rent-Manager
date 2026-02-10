@@ -41,6 +41,7 @@ model Room {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @default(now()) @updatedAt
   leases    Lease[]    @relation("LeaseToRoom")
+  expenses  Expense[]
 }
 
 model Lease {
@@ -120,7 +121,7 @@ model NotificationLog {
   sentAt            DateTime           @default(now())
   providerMessageId String?
   status            NotificationStatus @default(SENT)
-  error             String?
+  failed    String?
   sendDate          DateTime
   invoice           Invoice?           @relation(fields: [invoiceId], references: [id])
   lease             Lease              @relation(fields: [leaseId], references: [id])
@@ -129,9 +130,23 @@ model NotificationLog {
   @@unique([leaseId, type, sendDate], name: "lease_type_date_unique")
 }
 
+model Expense {
+  id          String          @id @default(cuid())
+  description String
+  amountCents Int
+  date        DateTime        @default(now())
+  category    ExpenseCategory
+  roomId      String?
+  room        Room?           @relation(fields: [roomId], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now()) @updatedAt
+  status      ExpenseStatus   @default(APPROVED)
+}
+
 enum Role {
   LANDLORD
   TENANT
+  MANAGER
 }
 
 enum RoomStatus {
@@ -172,4 +187,18 @@ enum NotificationType {
 enum NotificationStatus {
   SENT
   FAILED
+}
+
+enum ExpenseCategory {
+  MAINTENANCE
+  UTILITIES
+  INSURANCE
+  TAXES
+  OTHER
+}
+
+enum ExpenseStatus {
+  APPROVED
+  PENDING
+  REJECTED
 }

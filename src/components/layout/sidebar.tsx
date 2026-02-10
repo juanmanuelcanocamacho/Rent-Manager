@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils'; // wait, do I have lib/utils?
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/shared';
 import {
     LayoutDashboard,
@@ -11,9 +11,13 @@ import {
     FileText,
     CreditCard,
     MessageSquare,
-    LogOut
+    TrendingDown,
+    LogOut,
+    UserCog,
+    Shield
 } from 'lucide-react';
 import { logout } from '@/actions/auth';
+import { Role } from '@prisma/client';
 
 const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -21,17 +25,18 @@ const navItems = [
     { href: '/tenants', label: 'Inquilinos', icon: Users },
     { href: '/leases', label: 'Contratos', icon: FileText },
     { href: '/invoices', label: 'Facturación', icon: CreditCard },
+    { href: '/expenses', label: 'Gastos', icon: TrendingDown },
     { href: '/reports', label: 'Reportes', icon: MessageSquare },
 ];
 
-// Add props to Sidebar
 interface SidebarProps {
     notificationCounts?: {
         reports: number;
-    }
+    };
+    userRole?: Role;
 }
 
-export function Sidebar({ notificationCounts }: SidebarProps) {
+export function Sidebar({ notificationCounts, userRole }: SidebarProps) {
     const pathname = usePathname();
 
     return (
@@ -70,6 +75,23 @@ export function Sidebar({ notificationCounts }: SidebarProps) {
                         </Button>
                     );
                 })}
+
+                {/* Team Link - Landlord Only */}
+                {userRole === 'LANDLORD' && (
+                    <Button
+                        variant={pathname === '/team' ? 'secondary' : 'ghost'}
+                        className={cn(
+                            "w-full justify-start gap-3 relative",
+                            pathname === '/team' && "bg-secondary font-medium"
+                        )}
+                        asChild
+                    >
+                        <Link href="/team">
+                            <Users size={20} />
+                            Equipo
+                        </Link>
+                    </Button>
+                )}
             </nav>
 
             <div className="p-4 border-t">
@@ -89,7 +111,7 @@ export function Sidebar({ notificationCounts }: SidebarProps) {
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
-export function MobileHeader() {
+export function MobileHeader({ userRole }: { userRole?: Role }) {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
 
@@ -123,6 +145,21 @@ export function MobileHeader() {
                             </Link>
                         );
                     })}
+
+                    {userRole === 'LANDLORD' && (
+                        <Link
+                            href="/team"
+                            onClick={() => setIsOpen(false)}
+                            className={cn(
+                                "flex items-center gap-3 p-3 rounded-md transition-colors",
+                                pathname === '/team' ? "bg-secondary font-medium" : "hover:bg-muted"
+                            )}
+                        >
+                            <Users size={20} />
+                            Equipo
+                        </Link>
+                    )}
+
                     <div className="border-t my-2 pt-2">
                         <form action={async () => {
                             await logout();

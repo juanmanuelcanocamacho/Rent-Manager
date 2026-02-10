@@ -19,6 +19,14 @@ export async function requireLandlord() {
     return user;
 }
 
+export async function requireManagementAccess() {
+    const user = await getSessionUser();
+    if (!user || (user.role !== Role.LANDLORD && user.role !== Role.MANAGER)) {
+        redirect('/login');
+    }
+    return user;
+}
+
 export async function requireTenant() {
     const user = await getSessionUser();
     if (!user || user.role !== Role.TENANT) {

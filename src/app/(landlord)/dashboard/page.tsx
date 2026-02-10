@@ -1,13 +1,18 @@
 import { db } from '@/lib/db';
-import { requireLandlord } from '@/lib/rbac';
-import { formatMoney } from '@/lib/money';
-import { Card, Button, Badge } from '@/components/ui/shared';
+import { requireManagementAccess } from '@/lib/rbac';
 import { getNowInMadrid } from '@/lib/dates';
-import { AlertCircle, CheckCircle, Clock, Home, UserPlus, FileText, CreditCard, ChevronRight, TrendingUp, Users } from 'lucide-react';
+import { formatMoney } from '@/lib/money';
+import { Role } from '@prisma/client';
+import { Card, Button } from '@/components/ui/shared';
 import Link from 'next/link';
+import {
+    Clock, TrendingUp, AlertCircle, Users, CheckCircle, CreditCard,
+    UserPlus, FileText, Home, TrendingDown, ChevronRight
+} from 'lucide-react';
 
 export default async function LandlordDashboard() {
-    await requireLandlord();
+    const user = await requireManagementAccess();
+    const isLandlord = user.role === Role.LANDLORD;
 
     const today = getNowInMadrid();
 
@@ -18,6 +23,32 @@ export default async function LandlordDashboard() {
     });
 
     const overdueSum = overdueInvoices.reduce((acc, curr) => acc + curr.amountCents, 0);
+
+    // Fetch Expenses for Profitability
+    const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+    const monthlyExpenses = await db.expense.findMany({
+        where: {
+            date: {
+                gte: currentMonthStart,
+                lte: currentMonthEnd
+            }
+        }
+    });
+
+    const monthlyIncome = await db.payment.findMany({
+        where: {
+            paidDate: {
+                gte: currentMonthStart,
+                lte: currentMonthEnd
+            }
+        }
+    });
+
+    const totalExpensesCents = monthlyExpenses.reduce((acc, curr) => acc + curr.amountCents, 0);
+    const totalIncomeCents = monthlyIncome.reduce((acc, curr) => acc + curr.amountCents, 0);
+    const profitCents = totalIncomeCents - totalExpensesCents;
 
     // Due coming 7 days
     const nextWeek = new Date(today);
@@ -43,7 +74,7 @@ export default async function LandlordDashboard() {
                         Dashboard
                     </h1>
                     <p className="text-muted-foreground mt-2 text-lg">
-                        Resumen general de tus propiedades y finanzas.
+                        {isLandlord ? "Resumen general de tus propiedades y finanzas." : "Panel de Gestión y Cobros."}
                     </p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg backdrop-blur-sm border">
@@ -53,7 +84,32 @@ export default async function LandlordDashboard() {
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {/* Profitability Card (New) */}
+                <Card className="p-6 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <div className={profitCents >= 0 ? "text-emerald-500" : "text-rose-500"}>
+                            <TrendingUp size={80} />
+                        </div>
+                    </div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                                <TrendingUp size={20} className={profitCents >= 0 ? "text-emerald-600" : "text-rose-600"} />
+                            </div>
+                            <span className="font-semibold text-slate-600 dark:text-slate-300">Rentabilidad (Mes)</span>
+                        </div>
+                        <h3 className={`text-3xl font-bold tracking-tight ${profitCents >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                            {formatMoney(profitCents)}
+                        </h3>
+                        <div className="flex gap-2 text-xs mt-1 text-muted-foreground">
+                            <span className="text-emerald-600">+{formatMoney(totalIncomeCents)}</span>
+                            <span>/</span>
+                            <span className="text-rose-600">-{formatMoney(totalExpensesCents)}</span>
+                        </div>
+                    </div>
+                </Card>
+
                 {/* Deuda Vencida */}
                 <Card className={`p-6 relative overflow-hidden group border-destructive/20 ${overdueInvoices.length > 0 ? 'bg-red-50/50 dark:bg-red-950/10' : ''}`}>
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -79,20 +135,20 @@ export default async function LandlordDashboard() {
                 <Link href="/invoices?status=PENDING&due=week">
                     <Card className="p-6 relative overflow-hidden group cursor-pointer hover:border-primary/50 transition-colors">
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <TrendingUp size={80} className="text-primary" />
+                            <Clock size={80} className="text-blue-500" />
                         </div>
                         <div className="relative z-10">
                             <div className="flex items-center gap-2 mb-2">
                                 <div className="p-2 bg-blue-500/10 text-blue-600 rounded-lg">
                                     <Clock size={20} />
                                 </div>
-                                <span className="font-semibold text-blue-600">Cobros esta semana</span>
+                                <span className="font-semibold text-blue-600">Cobros semana</span>
                             </div>
                             <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                                {pendingInvoices.length}
+                                {formatMoney(pendingInvoices.reduce((acc, curr) => acc + curr.amountCents, 0))}
                             </h3>
                             <p className="text-sm text-muted-foreground mt-1">
-                                Facturas pendientes (7 días)
+                                {pendingInvoices.length} facturas (7 días)
                             </p>
                         </div>
                     </Card>
@@ -185,43 +241,64 @@ export default async function LandlordDashboard() {
                     )}
                 </div>
 
-                {/* Right Column: Quick Actions */}
-                <div className="space-y-6">
-                    <h2 className="text-xl font-semibold flex items-center gap-2">
-                        <CreditCard className="text-slate-400" size={20} />
-                        Acciones
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-                        <QuickActionCard
-                            href="/tenants"
-                            icon={<UserPlus size={24} />}
-                            title="Nuevo Inquilino"
-                            description="Registrar entrada"
-                            color="bg-violet-500"
-                        />
-                        <QuickActionCard
-                            href="/leases"
-                            icon={<FileText size={24} />}
-                            title="Nuevo Contrato"
-                            description="Crear arrendamiento"
-                            color="bg-blue-500"
-                        />
-                        <QuickActionCard
-                            href="/rooms"
-                            icon={<Home size={24} />}
-                            title="Gestionar Pisos"
-                            description="Ver habitaciones"
-                            color="bg-emerald-500"
-                        />
-                        <QuickActionCard
-                            href="/invoices"
-                            icon={<CreditCard size={24} />}
-                            title="Facturación"
-                            description="Ver cobros"
-                            color="bg-amber-500"
-                        />
+                {/* Right Column: Quick Actions - Only for Landlord generally, or simplified for Manager */}
+                {isLandlord && (
+                    <div className="space-y-6">
+                        <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <CreditCard className="text-slate-400" size={20} />
+                            Acciones Rápidas
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                            <QuickActionCard
+                                href="/tenants"
+                                icon={<UserPlus size={24} />}
+                                title="Nuevo Inquilino"
+                                description="Registrar entrada"
+                                color="bg-violet-500"
+                            />
+                            <QuickActionCard
+                                href="/leases"
+                                icon={<FileText size={24} />}
+                                title="Nuevo Contrato"
+                                description="Crear arrendamiento"
+                                color="bg-blue-500"
+                            />
+                            <QuickActionCard
+                                href="/rooms"
+                                icon={<Home size={24} />}
+                                title="Gestionar Pisos"
+                                description="Ver habitaciones"
+                                color="bg-emerald-500"
+                            />
+                            <QuickActionCard
+                                href="/invoices"
+                                icon={<CreditCard size={24} />}
+                                title="Facturación"
+                                description="Ver cobros"
+                                color="bg-amber-500"
+                            />
+                        </div>
                     </div>
-                </div>
+                )}
+
+                {/* Manager Quick Actions? Maybe Expenses? */}
+                {!isLandlord && (
+                    <div className="space-y-6">
+                        <h2 className="text-xl font-semibold flex items-center gap-2">
+                            <CreditCard className="text-slate-400" size={20} />
+                            Acciones
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                            <QuickActionCard
+                                href="/expenses"
+                                icon={<TrendingDown size={24} />}
+                                title="Registrar Gasto"
+                                description="Enviar gasto para aprobación"
+                                color="bg-amber-500"
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

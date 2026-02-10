@@ -1,6 +1,6 @@
 import { markInvoicePaid } from '@/actions/invoices';
 import { db } from '@/lib/db';
-import { requireLandlord } from '@/lib/rbac';
+import { requireManagementAccess } from '@/lib/rbac';
 import { formatMoney } from '@/lib/money';
 import { Badge, Button, Card } from '@/components/ui/shared';
 import { CheckCircle } from 'lucide-react';
@@ -11,7 +11,7 @@ import { TenantSelector } from '@/components/invoices/tenant-selector';
 import { TenantInvoiceAccordion } from '@/components/invoices/tenant-invoice-accordion';
 
 export default async function InvoicesPage(props: { searchParams: Promise<{ status?: InvoiceStatus; due?: string; tenantId?: string }> }) {
-    await requireLandlord();
+    await requireManagementAccess();
     const searchParams = await props.searchParams;
 
     const statusFilter = searchParams.status;

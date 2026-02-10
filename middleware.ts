@@ -18,8 +18,9 @@ export default auth((req) => {
 
     if (isLandlordRoute) {
         if (!isLoggedIn) return NextResponse.redirect(new URL('/login', nextUrl));
-        if (userRole !== 'LANDLORD') {
-            return NextResponse.redirect(new URL('/me', nextUrl)); // Tenant trying to access landlord, go to their home
+        // Allow both LANDLORD and MANAGER
+        if (userRole !== 'LANDLORD' && userRole !== 'MANAGER') {
+            return NextResponse.redirect(new URL('/me', nextUrl));
         }
     }
 
