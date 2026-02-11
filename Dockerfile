@@ -56,7 +56,7 @@ WORKDIR /app
 
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma
-RUN npm ci --ignore-scripts
+RUN npm install
 ENV PATH /app/node_modules/.bin:$PATH
 
 COPY . .
