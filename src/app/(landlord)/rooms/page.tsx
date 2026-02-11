@@ -1,7 +1,7 @@
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { createRoom, deleteRoom } from '@/actions/rooms';
 import { db } from '@/lib/db';
-import { requireManagementAccess } from '@/lib/rbac';
+import { requireManagementAccess, getLandlordContext } from '@/lib/rbac';
 import { Badge, Button, Card, Input } from '@/components/ui/shared';
 import { Trash2 } from 'lucide-react';
 import { Role } from '@prisma/client';
@@ -9,8 +9,11 @@ import { Role } from '@prisma/client';
 export default async function RoomsPage() {
     const user = await requireManagementAccess();
     const isLandlord = user.role === Role.LANDLORD;
+    const landlordId = await getLandlordContext();
 
-    const rawRooms = await db.room.findMany();
+    const rawRooms = await db.room.findMany({
+        where: { landlordId: landlordId }
+    });
     const rooms = rawRooms.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 
     return (
@@ -18,7 +21,7 @@ export default async function RoomsPage() {
             <div>
                 <h1 className="text-3xl font-bold">Propiedades</h1>
                 <p className="text-muted-foreground">
-                    {isLandlord ? "Gestiona tus habitaciones y pisos." : "Listado de propiedades (Solo Lectura)."}
+                    {isLandlord ? "Gestiona tus propiedades." : "Listado de propiedades (Solo Lectura)."}
                 </p>
             </div>
 
@@ -59,11 +62,11 @@ export default async function RoomsPage() {
                 {/* Create Form - Landlord Only */}
                 {isLandlord && (
                     <Card className="p-6 h-fit sticky top-8">
-                        <h3 className="text-xl font-semibold mb-4">Nueva Habitación</h3>
+                        <h3 className="text-xl font-semibold mb-4">Nueva Propiedad</h3>
                         <form action={createRoom} className="space-y-4">
                             <div>
                                 <label className="text-sm font-medium">Nombre / Identificador</label>
-                                <Input name="name" placeholder="Ej. Habitación 101" required />
+                                <Input name="name" placeholder="Ej. Propiedad 1" required />
                             </div>
                             <div>
                                 <label className="text-sm font-medium">Notas</label>

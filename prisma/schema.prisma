@@ -8,18 +8,28 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  passwordHash  String
-  role          Role
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @default(now()) @updatedAt
-  tenantProfile TenantProfile?
+  id             String          @id @default(cuid())
+  email          String          @unique
+  passwordHash   String
+  role           Role
+  landlordId     String?         // For Managers: link to their Landlord
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @default(now()) @updatedAt
+  tenantProfile  TenantProfile?  @relation("UserToTenantProfile")
+  managedRooms   Room[]          @relation("LandlordRooms")
+  managedTenants TenantProfile[] @relation("LandlordTenants")
+  managedLeases  Lease[]         @relation("LandlordLeases")
+  managedExpenses Expense[]       @relation("LandlordExpenses")
+  
+  // Relations for Manager-Landlord link
+  owner          User?           @relation("LandlordToManagers", fields: [landlordId], references: [id])
+  members        User[]          @relation("LandlordToManagers")
 }
 
 model TenantProfile {
   id                String    @id @default(cuid())
   userId            String    @unique
+  landlordId        String
   fullName          String
   documentNumber    String?
   phoneE164         String?
@@ -30,23 +40,31 @@ model TenantProfile {
   updatedAt         DateTime  @default(now()) @updatedAt
   leases            Lease[]
   messages          Message[]
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User      @relation("UserToTenantProfile", fields: [userId], references: [id], onDelete: Cascade)
+  landlord          User      @relation("LandlordTenants", fields: [landlordId], references: [id])
+
+  @@unique([id, landlordId])
 }
 
 model Room {
-  id        String     @id @default(cuid())
-  name      String
-  status    RoomStatus @default(AVAILABLE)
-  notes     String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @default(now()) @updatedAt
-  leases    Lease[]    @relation("LeaseToRoom")
-  expenses  Expense[]
+  id         String     @id @default(cuid())
+  name       String
+  landlordId String
+  status     RoomStatus @default(AVAILABLE)
+  notes      String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @default(now()) @updatedAt
+  expenses   Expense[]
+  leases     Lease[]    @relation("LeaseToRoom")
+  landlord   User       @relation("LandlordRooms", fields: [landlordId], references: [id])
+
+  @@unique([id, landlordId])
 }
 
 model Lease {
   id              String            @id @default(cuid())
   tenantId        String
+  landlordId      String
   startDate       DateTime
   endDate         DateTime?
   rentAmountCents Int
@@ -59,6 +77,9 @@ model Lease {
   messages        Message[]
   notifications   NotificationLog[]
   rooms           Room[]            @relation("LeaseToRoom")
+  landlord        User              @relation("LandlordLeases", fields: [landlordId], references: [id])
+
+  @@unique([id, landlordId])
 }
 
 model Invoice {
@@ -132,6 +153,7 @@ model NotificationLog {
 
 model Expense {
   id          String          @id @default(cuid())
+  landlordId  String
   description String
   amountCents Int
   date        DateTime        @default(now())
@@ -141,6 +163,9 @@ model Expense {
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @default(now()) @updatedAt
   status      ExpenseStatus   @default(APPROVED)
+  landlord    User            @relation("LandlordExpenses", fields: [landlordId], references: [id])
+
+  @@unique([id, landlordId])
 }
 
 enum Role {

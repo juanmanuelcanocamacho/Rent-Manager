@@ -1,6 +1,6 @@
 import { updateLease } from '@/actions/leases';
 import { db } from '@/lib/db';
-import { requireLandlord } from '@/lib/rbac';
+import { requireLandlord, getLandlordContext } from '@/lib/rbac';
 import { Button, Card, Input } from '@/components/ui/shared';
 import { formatMoney } from '@/lib/money';
 import { notFound } from 'next/navigation';
@@ -8,10 +8,11 @@ import { ArrowLeft } from 'lucide-react';
 
 export default async function EditLeasePage({ params }: { params: Promise<{ id: string }> }) {
     await requireLandlord();
+    const landlordId = await getLandlordContext();
     const { id } = await params;
 
-    const lease = await db.lease.findUnique({
-        where: { id },
+    const lease = await db.lease.findFirst({
+        where: { id, landlordId: landlordId },
         include: { tenant: true, rooms: true }
     });
 

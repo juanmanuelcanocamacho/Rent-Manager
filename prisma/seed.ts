@@ -39,6 +39,7 @@ async function main() {
         update: {},
         create: {
             userId: tenantUser.id,
+            landlordId: user.id,
             fullName: "Inquilino De Prueba",
             documentNumber: "12345678A",
         }
@@ -51,6 +52,7 @@ async function main() {
         room = await prisma.room.create({
             data: {
                 name: "Habitación 101",
+                landlordId: user.id,
                 status: 'OCCUPIED',
             }
         });
@@ -61,6 +63,7 @@ async function main() {
         data: {
             rooms: { connect: { id: room.id } },
             tenantId: tenantProfile.id,
+            landlordId: user.id,
             startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)), // 1 month ago
             endDate: new Date(new Date().setMonth(new Date().getMonth() + 11)), // 11 months from now
             rentAmountCents: 50000,

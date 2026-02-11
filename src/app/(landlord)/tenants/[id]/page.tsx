@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { requireLandlord } from '@/lib/rbac';
+import { requireLandlord, getLandlordContext } from '@/lib/rbac';
 import { Button, Card, Input } from '@/components/ui/shared';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { updateTenant } from '@/actions/tenants';
@@ -7,11 +7,12 @@ import { redirect } from 'next/navigation';
 
 export default async function EditTenantPage(props: { params: Promise<{ id: string }> }) {
     await requireLandlord();
+    const landlordId = await getLandlordContext();
     const params = await props.params;
     const { id } = params;
 
-    const tenant = await db.tenantProfile.findUnique({
-        where: { id },
+    const tenant = await db.tenantProfile.findFirst({
+        where: { id, landlordId: landlordId },
         include: { user: true }
     });
 

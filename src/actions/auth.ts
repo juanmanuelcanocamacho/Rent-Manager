@@ -3,6 +3,8 @@
 import { signIn, signOut } from '@/lib/auth';
 import { AuthError } from 'next-auth';
 import { db } from '@/lib/db';
+import bcrypt from 'bcryptjs';
+import { Role } from '@prisma/client';
 
 export async function login(prevState: any, formData: FormData) {
     try {
@@ -39,6 +41,59 @@ export async function login(prevState: any, formData: FormData) {
         }
         throw error;
     }
+}
+
+export async function registerLandlord(prevState: any, formData: FormData) {
+    try {
+        const email = formData.get('email') as string;
+        const password = formData.get('password') as string;
+        const code = formData.get('code') as string;
+
+        const registrationCode = process.env.LANDLORD_REGISTRATION_CODE || 'RENT_ADMIN_2025';
+
+        if (code !== registrationCode) {
+            return { error: 'Código de registro inválido' };
+        }
+
+        const existingUser = await db.user.findUnique({
+            where: { email }
+        });
+
+        if (existingUser) {
+            return { error: 'El email ya está registrado' };
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        await db.user.create({
+            data: {
+                email,
+                passwordHash,
+                role: Role.LANDLORD
+            }
+        });
+
+        // After registration, log them in
+        await signIn('credentials', {
+            email,
+            password,
+            redirectTo: '/dashboard',
+        });
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return { error: 'Registro completado, pero error al iniciar sesión automáticamente. Por favor inicia sesión.' };
+        }
+        // Rethrow redirect errors or other non-auth errors
+        throw error;
+    }
+}
+
+export async function authAction(prevState: any, formData: FormData) {
+    const mode = formData.get('mode') as string;
+    if (mode === 'register') {
+        return registerLandlord(prevState, formData);
+    }
+    return login(prevState, formData);
 }
 
 export async function logout() {

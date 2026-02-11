@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/lib/db';
-import { requireLandlord } from '@/lib/rbac';
+import { requireLandlord, getLandlordContext } from '@/lib/rbac';
 import { addMonths, calculateDueDate, getNowInMadrid, toMadridDate } from '@/lib/dates';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -16,7 +16,7 @@ const createLeaseSchema = z.object({
 });
 
 export async function createLease(formData: FormData) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
 
     const rawData = {
         roomIds: formData.getAll('roomIds'),
@@ -33,7 +33,12 @@ export async function createLease(formData: FormData) {
     const monthsAhead = parsed.duration || 12;
 
     // Validate Rooms Availability
-    const rooms = await db.room.findMany({ where: { id: { in: parsed.roomIds } } });
+    const rooms = await db.room.findMany({
+        where: {
+            id: { in: parsed.roomIds },
+            landlordId: landlordId
+        }
+    });
 
     if (rooms.length !== parsed.roomIds.length) {
         throw new Error("One or more rooms not found.");
@@ -48,6 +53,7 @@ export async function createLease(formData: FormData) {
         // 1. Create Lease
         const lease = await tx.lease.create({
             data: {
+                landlordId: landlordId,
                 rooms: {
                     connect: parsed.roomIds.map(id => ({ id }))
                 },
@@ -96,17 +102,17 @@ export async function createLease(formData: FormData) {
 }
 
 export async function endLease(leaseId: string) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
 
     await db.$transaction(async (tx) => {
         const lease = await tx.lease.findUnique({
-            where: { id: leaseId },
+            where: { id_landlordId: { id: leaseId, landlordId } },
             include: { rooms: true }
         });
-        if (!lease) throw new Error("Lease not found");
+        if (!lease) throw new Error("Lease not found or unauthorized");
 
         await tx.lease.update({
-            where: { id: leaseId },
+            where: { id_landlordId: { id: leaseId, landlordId } },
             data: {
                 status: 'ENDED',
                 endDate: getNowInMadrid(), // Set end date to now
@@ -125,14 +131,14 @@ export async function endLease(leaseId: string) {
 }
 
 export async function deleteLease(leaseId: string) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
 
     await db.$transaction(async (tx) => {
         const lease = await tx.lease.findUnique({
-            where: { id: leaseId },
+            where: { id_landlordId: { id: leaseId, landlordId } },
             include: { rooms: true }
         });
-        if (!lease) throw new Error("Lease not found");
+        if (!lease) throw new Error("Lease not found or unauthorized");
 
         // 1. Delete linked Invoice records (Payments, NotificationLogs)
         const invoices = await tx.invoice.findMany({ where: { leaseId } });
@@ -149,7 +155,9 @@ export async function deleteLease(leaseId: string) {
         await tx.notificationLog.deleteMany({ where: { leaseId } });
 
         // 3. Delete Lease
-        await tx.lease.delete({ where: { id: leaseId } });
+        await tx.lease.delete({
+            where: { id_landlordId: { id: leaseId, landlordId } }
+        });
 
         // 4. Update Rooms Status
         if (lease.status === 'ACTIVE' && lease.rooms.length > 0) {
@@ -175,19 +183,18 @@ export async function updateLease(formData: FormData) {
     const status = formData.get('status') as 'ACTIVE' | 'ENDED';
     const notes = formData.get('notes') as string;
 
-    if (!id) throw new Error("Lease ID required");
+    const landlordId = await getLandlordContext();
 
     // Optional: Date validation
     const endDate = endDateStr ? toMadridDate(new Date(endDateStr)) : null;
 
     await db.lease.update({
-        where: { id },
+        where: { id_landlordId: { id, landlordId } },
         data: {
             endDate,
             rentAmountCents: Math.round(rentAmount * 100),
             billingDay,
             status,
-            // notes: notes ?? // Schema doesn't have notes on Lease yet? Let's check schema.
         }
     });
 

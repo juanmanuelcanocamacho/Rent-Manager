@@ -1,12 +1,13 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { requireLandlord, requireManagementAccess, getSessionUser } from '@/lib/rbac';
+import { requireLandlord, requireManagementAccess, getSessionUser, getLandlordContext } from '@/lib/rbac';
 import { revalidatePath } from 'next/cache';
 import { ExpenseCategory, ExpenseStatus, Role } from '@prisma/client';
 
 export async function createExpense(formData: FormData) {
     const user = await requireManagementAccess();
+    const landlordId = await getLandlordContext();
 
     const description = formData.get('description') as string;
     const amountStr = formData.get('amount') as string;
@@ -26,6 +27,7 @@ export async function createExpense(formData: FormData) {
 
     await db.expense.create({
         data: {
+            landlordId: landlordId,
             description,
             amountCents,
             date: new Date(dateStr),
@@ -41,8 +43,11 @@ export async function createExpense(formData: FormData) {
 
 export async function deleteExpense(id: string) {
     const user = await requireManagementAccess();
+    const landlordId = await getLandlordContext();
 
-    const expense = await db.expense.findUnique({ where: { id } });
+    const expense = await db.expense.findUnique({
+        where: { id_landlordId: { id, landlordId } }
+    });
     if (!expense) return;
 
     // Managers can only delete if pending? Or strictly no delete?
@@ -56,7 +61,7 @@ export async function deleteExpense(id: string) {
     }
 
     await db.expense.delete({
-        where: { id }
+        where: { id_landlordId: { id, landlordId } }
     });
 
     revalidatePath('/expenses');
@@ -64,10 +69,10 @@ export async function deleteExpense(id: string) {
 }
 
 export async function approveExpense(id: string) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
 
     await db.expense.update({
-        where: { id },
+        where: { id_landlordId: { id, landlordId } },
         data: { status: ExpenseStatus.APPROVED }
     });
 
@@ -76,10 +81,10 @@ export async function approveExpense(id: string) {
 }
 
 export async function rejectExpense(id: string) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
 
     await db.expense.update({
-        where: { id },
+        where: { id_landlordId: { id, landlordId } },
         data: { status: ExpenseStatus.REJECTED }
     });
 

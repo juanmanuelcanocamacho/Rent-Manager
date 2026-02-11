@@ -1,35 +1,46 @@
 import { replyMessage, closeMessage, deleteMessage } from '@/actions/messages';
 import { approvePayment, rejectPayment } from '@/actions/payments';
 import { db } from '@/lib/db';
-import { requireLandlord } from '@/lib/rbac';
+import { requireLandlord, getLandlordContext } from '@/lib/rbac';
+import { InvoiceStatus } from '@prisma/client';
 import { Badge, Button, Card } from '@/components/ui/shared';
 import { MessageSquare, XCircle, Send, AlertTriangle, Check, X, FileText, Trash } from 'lucide-react';
 import { formatMoney } from '@/lib/money';
-import ReportGenerator from '@/components/reports/ReportGenerator';
+// import ReportGenerator from '@/components/reports/ReportGenerator';
 
 export default async function ReportsPage() {
     await requireLandlord();
+    const landlordId = await getLandlordContext();
 
     // Fetch Messages
     const messages = await db.message.findMany({
+        where: {
+            lease: {
+                landlordId: landlordId
+            }
+        },
         include: { tenant: true, lease: { include: { rooms: true } } },
         orderBy: [{ status: 'asc' }, { createdAt: 'desc' }]
     });
 
     // Fetch Pending Payments
     const pendingPayments = await db.invoice.findMany({
-        // @ts-ignore
-        where: { status: 'PAYMENT_PROCESSING' },
+        where: {
+            status: InvoiceStatus.PAYMENT_PROCESSING,
+            lease: {
+                landlordId: landlordId
+            }
+        },
         include: {
             proof: true,
             lease: { include: { tenant: true, rooms: true } }
         },
-        // @ts-ignore
         orderBy: { createdAt: 'desc' }
     });
 
     // Fetch Tenants for Report Filter
     const tenants = await db.tenantProfile.findMany({
+        where: { landlordId: landlordId },
         select: { id: true, fullName: true },
         orderBy: { fullName: 'asc' }
     });
@@ -37,7 +48,8 @@ export default async function ReportsPage() {
     return (
         <div className="space-y-10 animate-in fade-in">
             {/* Report Generator */}
-            <ReportGenerator tenants={tenants} />
+            {/* Report Generator Removed */}
+            {/* <ReportGenerator tenants={tenants} /> */}
 
             {/* Header */}
             <div>

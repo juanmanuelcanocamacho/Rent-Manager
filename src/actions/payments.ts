@@ -1,14 +1,15 @@
 'use server'
 
 import { db } from '@/lib/db';
-import { requireLandlord } from '@/lib/rbac';
+import { requireLandlord, getLandlordContext } from '@/lib/rbac';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
+import { PaymentMethod, InvoiceStatus } from '@prisma/client';
 
 /**
  * Tenant Action: Declare a payment for an invoice
  */
-export async function declarePayment(invoiceId: string, method: 'CASH' | 'BANK', notes?: string) {
+export async function declarePayment(invoiceId: string, method: PaymentMethod, notes?: string) {
     const session = await auth();
     if (!session?.user) throw new Error("Unauthorized");
 
@@ -34,11 +35,10 @@ export async function declarePayment(invoiceId: string, method: 'CASH' | 'BANK',
     if (!tenantProfile) throw new Error("Tenant profile not found");
     if (invoice.lease.tenantId !== tenantProfile.id) throw new Error("Unauthorized access to this invoice");
 
-    if (invoice.status === 'PAID') throw new Error("Invoice already paid");
+    if (invoice.status === InvoiceStatus.PAID) throw new Error("Invoice already paid");
 
     await db.$transaction(async (tx) => {
         // Create Proof
-        // @ts-ignore: Prisma types might be stale
         await tx.paymentProof.create({
             data: {
                 invoiceId,
@@ -50,8 +50,7 @@ export async function declarePayment(invoiceId: string, method: 'CASH' | 'BANK',
         // Update Invoice Status
         await tx.invoice.update({
             where: { id: invoiceId },
-            // @ts-ignore: Prisma types might be stale
-            data: { status: 'PAYMENT_PROCESSING' }
+            data: { status: InvoiceStatus.PAYMENT_PROCESSING }
         });
     });
 
@@ -63,10 +62,13 @@ export async function declarePayment(invoiceId: string, method: 'CASH' | 'BANK',
  * Landlord Action: Approve a declared payment
  */
 export async function approvePayment(proofId: string) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
 
-    const proof = await db.paymentProof.findUnique({
-        where: { id: proofId },
+    const proof = await db.paymentProof.findFirst({
+        where: {
+            id: proofId,
+            invoice: { lease: { landlordId } }
+        },
         include: { invoice: true }
     });
 
@@ -88,7 +90,7 @@ export async function approvePayment(proofId: string) {
         await tx.invoice.update({
             where: { id: proof.invoiceId },
             data: {
-                status: 'PAID',
+                status: InvoiceStatus.PAID,
                 paidAt: new Date(),
             }
         });
@@ -101,7 +103,6 @@ export async function approvePayment(proofId: string) {
         // If we keep it, we can't create another one if we ever revert.
         // Let's DELETE it upon approval to clean up 'pending' state, 
         // Since `Payment` record replaces it as the source of truth.
-        // @ts-ignore
         await tx.paymentProof.delete({ where: { id: proofId } });
     });
 
@@ -112,10 +113,13 @@ export async function approvePayment(proofId: string) {
  * Landlord Action: Reject a declared payment
  */
 export async function rejectPayment(proofId: string) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
 
-    const proof = await db.paymentProof.findUnique({
-        where: { id: proofId },
+    const proof = await db.paymentProof.findFirst({
+        where: {
+            id: proofId,
+            invoice: { lease: { landlordId } }
+        },
         include: { invoice: true }
     });
 
@@ -129,11 +133,10 @@ export async function rejectPayment(proofId: string) {
 
         await tx.invoice.update({
             where: { id: proof.invoiceId },
-            data: { status: isOverdue ? 'OVERDUE' : 'PENDING' }
+            data: { status: isOverdue ? InvoiceStatus.OVERDUE : InvoiceStatus.PENDING }
         });
 
         // Delete the proof so they can submit again
-        // @ts-ignore
         await tx.paymentProof.delete({ where: { id: proofId } });
     });
 

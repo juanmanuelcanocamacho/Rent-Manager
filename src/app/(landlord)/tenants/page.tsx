@@ -1,7 +1,7 @@
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { createTenant, deleteTenant } from '@/actions/tenants';
 import { db } from '@/lib/db';
-import { requireManagementAccess } from '@/lib/rbac';
+import { requireManagementAccess, getLandlordContext } from '@/lib/rbac';
 import { Badge, Button, Card, Input } from '@/components/ui/shared';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { User, Phone, Trash2, Pencil } from 'lucide-react';
@@ -10,8 +10,10 @@ import { Role } from '@prisma/client';
 export default async function TenantsPage() {
     const user = await requireManagementAccess();
     const isLandlord = user.role === Role.LANDLORD;
+    const landlordId = await getLandlordContext();
 
     const tenants = await db.tenantProfile.findMany({
+        where: { landlordId: landlordId },
         include: { user: true },
         orderBy: { fullName: 'asc' }
     });

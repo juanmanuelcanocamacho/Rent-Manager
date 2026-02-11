@@ -27,6 +27,25 @@ export async function requireManagementAccess() {
     return user;
 }
 
+/**
+ * Returns the ID of the Landlord who "owns" the data.
+ * If user is LANDLORD, returns their own ID.
+ * If user is MANAGER, returns their landlordId.
+ */
+export async function getLandlordContext() {
+    const user = await requireManagementAccess();
+    if (user.role === Role.LANDLORD) {
+        return user.id;
+    }
+    // If manager, we might need to fetch the user from DB to get landlordId 
+    // because NextAuth session might not have it yet.
+    const dbUser = await db.user.findUnique({ where: { id: user.id } });
+    if (!dbUser?.landlordId && user.role === Role.MANAGER) {
+        throw new Error("Manager has no associated landlord");
+    }
+    return dbUser?.landlordId || user.id;
+}
+
 export async function requireTenant() {
     const user = await getSessionUser();
     if (!user || user.role !== Role.TENANT) {

@@ -1,7 +1,7 @@
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { createLease, endLease, deleteLease } from '@/actions/leases';
 import { db } from '@/lib/db';
-import { requireManagementAccess } from '@/lib/rbac';
+import { requireManagementAccess, getLandlordContext } from '@/lib/rbac';
 import { formatMoney } from '@/lib/money';
 import { Badge, Button, Card, Input } from '@/components/ui/shared';
 import { Trash2, Pencil } from 'lucide-react';
@@ -10,15 +10,22 @@ import { Role } from '@prisma/client';
 export default async function LeasesPage() {
     const user = await requireManagementAccess();
     const isLandlord = user.role === Role.LANDLORD;
+    const landlordId = await getLandlordContext();
 
     const leases = await db.lease.findMany({
+        where: { landlordId: landlordId },
         include: { rooms: true, tenant: true, invoices: true },
         orderBy: { status: 'asc' } // Active first
     });
 
-    const rooms = await db.room.findMany({ where: { status: 'AVAILABLE' } });
+    const rooms = await db.room.findMany({
+        where: { status: 'AVAILABLE', landlordId: landlordId }
+    });
     rooms.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
-    const tenants = await db.tenantProfile.findMany({ include: { user: true } });
+    const tenants = await db.tenantProfile.findMany({
+        where: { landlordId: landlordId },
+        include: { user: true }
+    });
 
     return (
         <div className="space-y-8">
@@ -128,7 +135,7 @@ export default async function LeasesPage() {
                         <h3 className="text-xl font-semibold mb-4">Nuevo Contrato</h3>
                         <form action={createLease} className="space-y-4">
                             <div>
-                                <label className="text-sm font-medium mb-2 block">Habitaciones Disponibles</label>
+                                <label className="text-sm font-medium mb-2 block">Propiedades Disponibles</label>
                                 <div className="border rounded-md p-3 space-y-2 max-h-48 overflow-y-auto bg-background">
                                     {rooms.map(r => (
                                         <div key={r.id} className="flex items-center gap-2">
@@ -144,7 +151,7 @@ export default async function LeasesPage() {
                                             </label>
                                         </div>
                                     ))}
-                                    {rooms.length === 0 && <p className="text-xs text-muted-foreground">No hay habitaciones disponibles.</p>}
+                                    {rooms.length === 0 && <p className="text-xs text-muted-foreground">No hay propiedades disponibles.</p>}
                                 </div>
                             </div>
                             <div>

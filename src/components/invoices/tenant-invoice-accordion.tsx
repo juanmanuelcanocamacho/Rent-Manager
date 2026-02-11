@@ -4,16 +4,18 @@ import { useState } from 'react';
 import { Card, Button, Badge } from '@/components/ui/shared';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { formatMoney } from '@/lib/money';
-import { ChevronDown, ChevronUp, CheckCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, CheckCircle, FileDown } from 'lucide-react';
 import { markInvoicePaid, unmarkInvoicePaid } from '@/actions/invoices';
 import { approvePayment, rejectPayment } from '@/actions/payments';
 import { Check, X, MessageSquare, AlertTriangle } from 'lucide-react';
+import { generateInvoiceReceipt } from '@/lib/pdf/invoice-receipt';
 
 interface Invoice {
     id: string;
     amountCents: number;
     status: string;
     dueDate: Date;
+    paidAt?: Date | null;
     lease: {
         rooms: { name: string }[];
         tenant: { fullName: string; phoneE164: string | null };
@@ -172,23 +174,40 @@ export function TenantInvoiceAccordion({ tenantName, invoices }: TenantInvoiceAc
                                     </Button>
                                 </div>
                             ) : (
-                                <ConfirmDialog
-                                    trigger={
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                        >
-                                            Deshacer Pago
-                                        </Button>
-                                    }
-                                    title="Deshacer Pago"
-                                    description="¿Estás seguro de que deseas deshacer este pago? La factura volverá a estar pendiente."
-                                    onConfirm={async () => {
-                                        await unmarkInvoicePaid(invoice.id);
-                                    }}
-                                    variant="destructive"
-                                />
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => generateInvoiceReceipt({
+                                            id: invoice.id,
+                                            amountCents: invoice.amountCents,
+                                            dueDate: invoice.dueDate,
+                                            paidAt: invoice.paidAt,
+                                            tenantName: invoice.lease.tenant.fullName,
+                                            rooms: invoice.lease.rooms.map(r => r.name)
+                                        })}
+                                        className="gap-2 border-primary/20 text-primary hover:bg-primary/5"
+                                    >
+                                        <FileDown size={16} /> Recibo
+                                    </Button>
+                                    <ConfirmDialog
+                                        trigger={
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                            >
+                                                Deshacer Pago
+                                            </Button>
+                                        }
+                                        title="Deshacer Pago"
+                                        description="¿Estás seguro de que deseas deshacer este pago? La factura volverá a estar pendiente."
+                                        onConfirm={async () => {
+                                            await unmarkInvoicePaid(invoice.id);
+                                        }}
+                                        variant="destructive"
+                                    />
+                                </div>
                             )}
                         </Card>
                     ))}

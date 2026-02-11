@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { requireManagementAccess } from '@/lib/rbac';
+import { requireManagementAccess, getLandlordContext } from '@/lib/rbac';
 import { getNowInMadrid } from '@/lib/dates';
 import { formatMoney } from '@/lib/money';
 import { Role } from '@prisma/client';
@@ -13,12 +13,16 @@ import {
 export default async function LandlordDashboard() {
     const user = await requireManagementAccess();
     const isLandlord = user.role === Role.LANDLORD;
+    const landlordId = await getLandlordContext();
 
     const today = getNowInMadrid();
 
     // Fetch statistics
     const overdueInvoices = await db.invoice.findMany({
-        where: { status: 'OVERDUE' },
+        where: {
+            status: 'OVERDUE',
+            lease: { landlordId: landlordId }
+        },
         include: { lease: { include: { tenant: true } } }
     });
 
@@ -30,6 +34,7 @@ export default async function LandlordDashboard() {
 
     const monthlyExpenses = await db.expense.findMany({
         where: {
+            landlordId: landlordId,
             date: {
                 gte: currentMonthStart,
                 lte: currentMonthEnd
@@ -39,6 +44,9 @@ export default async function LandlordDashboard() {
 
     const monthlyIncome = await db.payment.findMany({
         where: {
+            invoice: {
+                lease: { landlordId: landlordId }
+            },
             paidDate: {
                 gte: currentMonthStart,
                 lte: currentMonthEnd
@@ -57,12 +65,17 @@ export default async function LandlordDashboard() {
     const pendingInvoices = await db.invoice.findMany({
         where: {
             status: 'PENDING',
-            dueDate: { lte: nextWeek, gte: today }
+            dueDate: { lte: nextWeek, gte: today },
+            lease: { landlordId: landlordId }
         }
     });
 
-    const roomsOccupied = await db.room.count({ where: { status: 'OCCUPIED' } });
-    const roomsTotal = await db.room.count();
+    const roomsOccupied = await db.room.count({
+        where: { status: 'OCCUPIED', landlordId: landlordId }
+    });
+    const roomsTotal = await db.room.count({
+        where: { landlordId: landlordId }
+    });
     const occupancyRate = roomsTotal > 0 ? Math.round((roomsOccupied / roomsTotal) * 100) : 0;
 
     return (
@@ -266,7 +279,7 @@ export default async function LandlordDashboard() {
                             <QuickActionCard
                                 href="/rooms"
                                 icon={<Home size={24} />}
-                                title="Gestionar Pisos"
+                                title="Gestionar Propiedades"
                                 description="Ver habitaciones"
                                 color="bg-emerald-500"
                             />

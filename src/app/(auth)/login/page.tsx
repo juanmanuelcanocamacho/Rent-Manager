@@ -1,13 +1,18 @@
 "use client";
 
-import { useActionState } from "react";
-import { login } from "@/actions/auth";
+import { useActionState, useState } from "react";
+import { authAction } from "@/actions/auth";
 import Link from 'next/link';
-import { ArrowLeft, Building2, Lock, User, CheckCircle2 } from 'lucide-react';
-import { Button } from "@/components/ui/shared"; // Assuming Button is available here or use standard HTML button styled
+import { ArrowLeft, Building2, Lock, User, CheckCircle2, KeyRound } from 'lucide-react';
+import { Button } from "@/components/ui/shared";
 
 export default function LoginPage() {
-  const [state, formAction, isPending] = useActionState(login, undefined);
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [state, formAction, isPending] = useActionState(authAction, undefined);
+
+  const toggleMode = () => {
+    setMode(mode === 'login' ? 'register' : 'login');
+  };
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -26,10 +31,14 @@ export default function LoginPage() {
 
         <div className="relative z-10 max-w-lg">
           <h2 className="text-4xl font-extrabold tracking-tight mb-6">
-            Gestiona tus propiedades con inteligencia.
+            {mode === 'login'
+              ? "Gestiona tus propiedades con inteligencia."
+              : "Comienza a gestionar tu patrimonio hoy."}
           </h2>
           <p className="text-slate-300 text-lg mb-8 leading-relaxed">
-            Únete a la plataforma que centraliza inquilinos, contratos y finanzas. Todo lo que necesitas para escalar tu patrimonio sin perder el control.
+            {mode === 'login'
+              ? "Únete a la plataforma que centraliza inquilinos, contratos y finanzas. Todo lo que necesitas para escalar tu patrimonio sin perder el control."
+              : "Regístrate como propietario y accede a las herramientas más potentes del mercado para la gestión de alquileres."}
           </p>
           <div className="space-y-4">
             <div className="flex items-center gap-3">
@@ -58,7 +67,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right: Login Form */}
+      {/* Right: Form */}
       <div className="flex flex-col items-center justify-center p-6 md:p-12 bg-background relative">
         <Link href="/" className="absolute top-6 left-6 lg:hidden flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
           <ArrowLeft size={20} />
@@ -69,11 +78,19 @@ export default function LoginPage() {
 
         <div className="w-full max-w-sm space-y-8">
           <div className="text-center lg:text-left">
-            <h1 className="text-3xl font-bold tracking-tight">Bienvenido de nuevo</h1>
-            <p className="text-muted-foreground mt-2">Introduce tus credenciales para acceder al panel.</p>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {mode === 'login' ? 'Bienvenido de nuevo' : 'Crea tu cuenta'}
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              {mode === 'login'
+                ? 'Introduce tus credenciales para acceder al panel.'
+                : 'Completa los datos para registrarte como propietario.'}
+            </p>
           </div>
 
           <form action={formAction} className="space-y-5">
+            <input type="hidden" name="mode" value={mode} />
+
             {state?.error && (
               <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm font-medium flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
@@ -82,23 +99,23 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label className="text-sm font-medium leading-none">
                 Email
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <input
                   name="email"
-                  type="text" // generic text for admin login
+                  type="email"
                   placeholder="usuario@ejemplo.com"
                   required
-                  className="flex h-10 w-full rounded-md border border-input bg-background pl-10 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-10 w-full rounded-md border border-input bg-background pl-10 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              <label className="text-sm font-medium leading-none">
                 Contraseña
               </label>
               <div className="relative">
@@ -108,10 +125,30 @@ export default function LoginPage() {
                   type="password"
                   placeholder="••••••••"
                   required
-                  className="flex h-10 w-full rounded-md border border-input bg-background pl-10 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  min={8}
+                  className="flex h-10 w-full rounded-md border border-input bg-background pl-10 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
                 />
               </div>
             </div>
+
+            {mode === 'register' && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <label className="text-sm font-medium leading-none">
+                  Código de Registro
+                </label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <input
+                    name="code"
+                    type="text"
+                    placeholder="Código secreto"
+                    required
+                    className="flex h-10 w-full rounded-md border border-input bg-background pl-10 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+                  />
+                </div>
+                <p className="text-[10px] text-muted-foreground italic">Pide el código al administrador del sistema.</p>
+              </div>
+            )}
 
             <button
               type="submit"
@@ -121,19 +158,36 @@ export default function LoginPage() {
               {isPending ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Verificando...
+                  {mode === 'login' ? 'Iniciando sesión...' : 'Registrando...'}
                 </span>
               ) : (
-                "Iniciar Sesión"
+                mode === 'login' ? "Iniciar Sesión" : "Crear Cuenta"
               )}
             </button>
           </form>
 
           <p className="px-8 text-center text-sm text-muted-foreground">
-            ¿No tienes cuenta?{" "}
-            <Link href="#" className="underline underline-offset-4 hover:text-primary">
-              Contacta con soporte
-            </Link>
+            {mode === 'login' ? (
+              <>
+                ¿No tienes cuenta?{" "}
+                <button
+                  onClick={toggleMode}
+                  className="underline underline-offset-4 hover:text-primary font-medium"
+                >
+                  Regístrate aquí
+                </button>
+              </>
+            ) : (
+              <>
+                ¿Ya tienes una cuenta?{" "}
+                <button
+                  onClick={toggleMode}
+                  className="underline underline-offset-4 hover:text-primary font-medium"
+                >
+                  Inicia sesión
+                </button>
+              </>
+            )}
           </p>
         </div>
       </div>

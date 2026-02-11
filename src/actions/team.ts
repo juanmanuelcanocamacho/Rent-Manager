@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { requireLandlord } from '@/lib/rbac';
+import { requireLandlord, getLandlordContext } from '@/lib/rbac';
 import { hash } from 'bcryptjs'; // Using bcryptjs directly if hashPassword not exported?
 // actually checking auth.ts to see what is exported.
 // If hashPassword is not exported, I should check src/lib/auth.ts
@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache';
 import { Role } from '@prisma/client';
 
 export async function createManager(formData: FormData) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
 
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
@@ -25,7 +25,7 @@ export async function createManager(formData: FormData) {
             email,
             passwordHash,
             role: Role.MANAGER,
-            // We could add a profile if needed, but for now User table is enough
+            landlordId: landlordId,
         }
     });
 
@@ -33,14 +33,16 @@ export async function createManager(formData: FormData) {
 }
 
 export async function deleteManager(id: string) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
 
     // Prevent deleting self (though requireLandlord checks current user)
     // Prevent deleting other landlords?
     // Just simple delete for now.
 
-    const user = await db.user.findUnique({ where: { id } });
-    if (user?.role !== Role.MANAGER) {
+    const user = await db.user.findFirst({
+        where: { id, landlordId: landlordId }
+    });
+    if (!user || user.role !== Role.MANAGER) {
         throw new Error("Solo se pueden borrar encargados");
     }
 

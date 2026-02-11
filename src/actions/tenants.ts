@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/lib/db';
-import { requireLandlord } from '@/lib/rbac';
+import { requireLandlord, getLandlordContext } from '@/lib/rbac';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
@@ -16,7 +16,7 @@ const createTenantSchema = z.object({
 });
 
 export async function createTenant(formData: FormData) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
 
     const data = {
         fullName: formData.get('fullName'),
@@ -65,8 +65,8 @@ export async function createTenant(formData: FormData) {
         await tx.tenantProfile.create({
             data: {
                 userId: user.id,
+                landlordId: landlordId,
                 fullName: parsed.fullName as string,
-                // @ts-ignore: Prisma client type might be stale, field is optional in DB
                 phoneE164: parsed.phone || undefined,
                 documentNumber: parsed.documentNumber,
                 notes: parsed.notes as string,
@@ -106,9 +106,14 @@ export async function updateTenant(formData: FormData) {
 
     const parsed = createTenantSchema.parse(data);
 
+    const landlordId = await getLandlordContext();
+
     await db.$transaction(async (tx) => {
-        const tenant = await tx.tenantProfile.findUnique({ where: { id }, include: { user: true } });
-        if (!tenant) throw new Error("Tenant not found");
+        const tenant = await tx.tenantProfile.findUnique({
+            where: { id_landlordId: { id, landlordId } },
+            include: { user: true }
+        });
+        if (!tenant) throw new Error("Tenant not found or unauthorized");
 
         // Update User if email changed
         if (tenant.user.email !== parsed.email) {
@@ -120,7 +125,7 @@ export async function updateTenant(formData: FormData) {
 
         // Update Profile
         await tx.tenantProfile.update({
-            where: { id },
+            where: { id_landlordId: { id, landlordId } },
             data: {
                 fullName: parsed.fullName as string,
                 phoneE164: parsed.phone as string,
@@ -138,9 +143,13 @@ export async function updateTenant(formData: FormData) {
 export async function deleteTenant(tenantId: string) {
     await requireLandlord();
 
+    const landlordId = await getLandlordContext();
+
     await db.$transaction(async (tx) => {
-        const tenant = await tx.tenantProfile.findUnique({ where: { id: tenantId } });
-        if (!tenant) throw new Error("Tenant not found");
+        const tenant = await tx.tenantProfile.findUnique({
+            where: { id_landlordId: { id: tenantId, landlordId } }
+        });
+        if (!tenant) throw new Error("Tenant not found or unauthorized");
 
         const userId = tenant.userId;
 

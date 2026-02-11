@@ -13,7 +13,7 @@ type TenantOption = {
     fullName: string;
 };
 
-export default function ReportGenerator({ tenants }: { tenants: TenantOption[] }) {
+export default function ReportGenerator({ tenants, condensed = false }: { tenants: TenantOption[]; condensed?: boolean }) {
     const [loading, setLoading] = useState(false);
     const [selectedTenant, setSelectedTenant] = useState<string>('ALL');
     const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'PAID' | 'PENDING' | 'OVERDUE'>('ALL');
@@ -129,53 +129,73 @@ export default function ReportGenerator({ tenants }: { tenants: TenantOption[] }
     };
 
     return (
-        <div className="bg-white p-6 rounded-xl border shadow-sm space-y-4 mb-8">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-                <FileText size={20} className="text-primary" />
-                Generador de Reportes PDF
-            </h2>
-
-            <div className="flex flex-wrap gap-4 items-end">
-                <div className="space-y-1">
-                    <label className="text-sm font-medium">Inquilino</label>
+        <div className={condensed ? "" : "bg-card p-6 rounded-xl border shadow-sm space-y-4 mb-8"}>
+            {condensed ? (
+                <div className="flex items-center gap-2">
                     <select
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                        className="h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring w-40"
                         value={selectedTenant}
                         onChange={(e) => setSelectedTenant(e.target.value)}
                     >
-                        <option value="ALL">Todos los Inquilinos</option>
+                        <option value="ALL">Inquilino: Todos</option>
                         {tenants.map(t => (
                             <option key={t.id} value={t.id}>{t.fullName}</option>
                         ))}
                     </select>
+                    <Button onClick={generatePDF} disabled={loading} size="sm" variant="outline" className="h-9">
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />} PDF
+                    </Button>
                 </div>
+            ) : (
+                <>
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                        <FileText size={20} className="text-primary" />
+                        Generador de facturas (PDF)
+                    </h2>
 
-                <div className="space-y-1">
-                    <label className="text-sm font-medium">Estado</label>
-                    <select
-                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        value={selectedStatus}
-                        onChange={(e) => setSelectedStatus(e.target.value as any)}
-                    >
-                        <option value="ALL">Todos</option>
-                        <option value="PAID">Pagados</option>
-                        <option value="PENDING">Pendientes</option>
-                        <option value="OVERDUE">Vencidos</option>
-                    </select>
-                </div>
+                    <div className="flex flex-wrap gap-4 items-end">
+                        <div className="space-y-1">
+                            <label className="text-sm font-medium">Inquilino</label>
+                            <select
+                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                value={selectedTenant}
+                                onChange={(e) => setSelectedTenant(e.target.value)}
+                            >
+                                <option value="ALL">Todos los Inquilinos</option>
+                                {tenants.map(t => (
+                                    <option key={t.id} value={t.id}>{t.fullName}</option>
+                                ))}
+                            </select>
+                        </div>
 
-                <Button onClick={generatePDF} disabled={loading} className="w-full md:w-auto">
-                    {loading ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generando...
-                        </>
-                    ) : (
-                        <>
-                            <FileText className="mr-2 h-4 w-4" /> Descargar PDF
-                        </>
-                    )}
-                </Button>
-            </div>
+                        <div className="space-y-1">
+                            <label className="text-sm font-medium">Estado</label>
+                            <select
+                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                value={selectedStatus}
+                                onChange={(e) => setSelectedStatus(e.target.value as any)}
+                            >
+                                <option value="ALL">Todos</option>
+                                <option value="PAID">Pagados</option>
+                                <option value="PENDING">Pendientes</option>
+                                <option value="OVERDUE">Vencidos</option>
+                            </select>
+                        </div>
+
+                        <Button onClick={generatePDF} disabled={loading} className="w-full md:w-auto">
+                            {loading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generando...
+                                </>
+                            ) : (
+                                <>
+                                    <FileText className="mr-2 h-4 w-4" /> Descargar PDF
+                                </>
+                            )}
+                        </Button>
+                    </div>
+                </>
+            )}
         </div>
     );
 }

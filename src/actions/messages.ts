@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/lib/db';
-import { requireLandlord, requireTenant, getSessionUser, getTenantProfileForSession } from '@/lib/rbac';
+import { requireLandlord, requireTenant, getSessionUser, getTenantProfileForSession, getLandlordContext } from '@/lib/rbac';
 import { revalidatePath } from 'next/cache';
 
 export async function createMessage(formData: FormData) {
@@ -36,7 +36,12 @@ export async function createMessage(formData: FormData) {
 }
 
 export async function replyMessage(messageId: string, reply: string) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
+
+    const message = await db.message.findFirst({
+        where: { id: messageId, lease: { landlordId } }
+    });
+    if (!message) throw new Error("Message not found or unauthorized");
 
     await db.message.update({
         where: { id: messageId },
@@ -52,7 +57,12 @@ export async function replyMessage(messageId: string, reply: string) {
 }
 
 export async function closeMessage(messageId: string) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
+
+    const message = await db.message.findFirst({
+        where: { id: messageId, lease: { landlordId } }
+    });
+    if (!message) throw new Error("Message not found or unauthorized");
     await db.message.update({
         where: { id: messageId },
         data: { status: 'CLOSED' }
@@ -62,7 +72,12 @@ export async function closeMessage(messageId: string) {
 }
 
 export async function deleteMessage(messageId: string) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
+
+    const message = await db.message.findFirst({
+        where: { id: messageId, lease: { landlordId } }
+    });
+    if (!message) throw new Error("Message not found or unauthorized");
     await db.message.delete({
         where: { id: messageId }
     });

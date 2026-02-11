@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { requireLandlord } from '@/lib/rbac';
+import { requireLandlord, getLandlordContext } from '@/lib/rbac';
 import { Button, Card, Input, Badge } from '@/components/ui/shared';
 import { createManager, deleteManager } from '@/actions/team';
 import { UserCog, Trash2, Shield } from 'lucide-react';
@@ -8,9 +8,10 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export default async function TeamPage() {
     await requireLandlord();
+    const landlordId = await getLandlordContext();
 
     const managers = await db.user.findMany({
-        where: { role: Role.MANAGER },
+        where: { role: Role.MANAGER, landlordId: landlordId },
         orderBy: { createdAt: 'desc' }
     });
 

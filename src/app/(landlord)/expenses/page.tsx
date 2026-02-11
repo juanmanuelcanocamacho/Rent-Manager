@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { requireManagementAccess, getSessionUser } from '@/lib/rbac';
+import { requireManagementAccess, getSessionUser, getLandlordContext } from '@/lib/rbac';
 import { Button, Card, Input, Badge } from '@/components/ui/shared';
 import { createExpense, deleteExpense, approveExpense, rejectExpense } from '@/actions/expenses';
 import { formatMoney } from '@/lib/money';
@@ -9,8 +9,10 @@ import { ExpenseCategory, Role, ExpenseStatus } from '@prisma/client';
 export default async function ExpensesPage() {
     const user = await requireManagementAccess();
     const isLandlord = user.role === Role.LANDLORD;
+    const landlordId = await getLandlordContext();
 
     const expenses = await db.expense.findMany({
+        where: { landlordId: landlordId },
         orderBy: { date: 'desc' },
         include: { room: true }
     });

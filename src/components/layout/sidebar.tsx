@@ -34,9 +34,13 @@ interface SidebarProps {
         reports: number;
     };
     userRole?: Role;
+    user?: {
+        email: string;
+        role: Role;
+    };
 }
 
-export function Sidebar({ notificationCounts, userRole }: SidebarProps) {
+export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
     const pathname = usePathname();
 
     return (
@@ -94,7 +98,26 @@ export function Sidebar({ notificationCounts, userRole }: SidebarProps) {
                 )}
             </nav>
 
-            <div className="p-4 border-t">
+            <div className="p-4 border-t mt-auto">
+                {user && (
+                    <div className="mb-4 px-2">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                                <Users size={20} />
+                            </div>
+                            <div className="flex flex-col overflow-hidden">
+                                <span className="text-sm font-semibold truncate" title={user.email}>
+                                    {user.email}
+                                </span>
+                                <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">
+                                    <Shield size={10} />
+                                    {user.role === 'LANDLORD' ? 'PROPIETARIO' : user.role === 'MANAGER' ? 'GESTOR' : 'INQUILINO'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <form action={async () => {
                     await logout();
                 }}>
@@ -111,7 +134,7 @@ export function Sidebar({ notificationCounts, userRole }: SidebarProps) {
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
-export function MobileHeader({ userRole }: { userRole?: Role }) {
+export function MobileHeader({ userRole, user }: { userRole?: Role; user?: { email: string; role: Role } }) {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
 
@@ -145,6 +168,20 @@ export function MobileHeader({ userRole }: { userRole?: Role }) {
                             </Link>
                         );
                     })}
+
+                    <div className="border-t my-2 pt-2 pb-2">
+                        {user && (
+                            <div className="flex items-center gap-3 px-3 py-2">
+                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs border border-primary/20">
+                                    <Users size={16} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">{user.email}</span>
+                                    <span className="text-[10px] text-muted-foreground uppercase">{user.role}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     {userRole === 'LANDLORD' && (
                         <Link

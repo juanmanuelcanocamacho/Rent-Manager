@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/lib/db';
-import { requireLandlord } from '@/lib/rbac';
+import { requireLandlord, getLandlordContext } from '@/lib/rbac';
 import { Prisma } from '@prisma/client';
 
 export type ReportFilter = {
@@ -12,12 +12,17 @@ export type ReportFilter = {
 };
 
 export async function getInvoicesForReport(filter: ReportFilter) {
-    await requireLandlord();
+    const landlordId = await getLandlordContext();
 
-    const where: Prisma.InvoiceWhereInput = {};
+    const where: Prisma.InvoiceWhereInput = {
+        lease: {
+            landlordId: landlordId
+        }
+    };
 
     if (filter.tenantId && filter.tenantId !== 'ALL') {
         where.lease = {
+            ...(where.lease as Prisma.LeaseWhereInput),
             tenantId: filter.tenantId
         };
     }
