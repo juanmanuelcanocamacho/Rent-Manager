@@ -21,8 +21,8 @@ export default async function TenantsPage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold">Inquilinos</h1>
-                <p className="text-muted-foreground">
+                <h1 className="text-2xl md:text-3xl font-bold">Inquilinos</h1>
+                <p className="text-muted-foreground text-sm md:text-base">
                     {isLandlord ? "Gestiona los usuarios y perfiles de inquilinos." : "Directorio de inquilinos (Solo Lectura)."}
                 </p>
             </div>
@@ -31,8 +31,8 @@ export default async function TenantsPage() {
                 {/* List */}
                 <div className={isLandlord ? "lg:col-span-2 space-y-4" : "lg:col-span-3 space-y-4"}>
                     {tenants.map((tenant) => (
-                        <Card key={tenant.id} className="p-4">
-                            <div className="flex justify-between items-start">
+                        <Card key={tenant.id} className="p-3 md:p-4">
+                            <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
                                 <div className="flex gap-4">
                                     <div className="bg-primary/10 p-3 rounded-full h-fit">
                                         <User className="text-primary" />
@@ -58,7 +58,7 @@ export default async function TenantsPage() {
                                 </div>
 
                                 {isLandlord && (
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 w-full sm:w-auto justify-end">
                                         <Button variant="ghost" size="sm" asChild className="p-2 h-auto text-muted-foreground hover:text-primary">
                                             <a href={`/tenants/${tenant.id}`}>
                                                 <Pencil size={18} />

@@ -19,8 +19,8 @@ export default async function RoomsPage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold">Propiedades</h1>
-                <p className="text-muted-foreground">
+                <h1 className="text-2xl md:text-3xl font-bold">Propiedades</h1>
+                <p className="text-muted-foreground text-sm md:text-base">
                     {isLandlord ? "Gestiona tus propiedades." : "Listado de propiedades (Solo Lectura)."}
                 </p>
             </div>
@@ -29,7 +29,7 @@ export default async function RoomsPage() {
                 {/* List */}
                 <div className="space-y-4">
                     {rooms.map((room) => (
-                        <Card key={room.id} className="p-4 flex items-center justify-between">
+                        <Card key={room.id} className="p-3 md:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <div>
                                 <div className="flex items-center gap-2">
                                     <h3 className="font-semibold text-lg">{room.name}</h3>

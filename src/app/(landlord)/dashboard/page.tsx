@@ -81,25 +81,26 @@ export default async function LandlordDashboard() {
     return (
         <div className="space-y-8 max-w-7xl mx-auto">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="flex flex-col gap-3 md:gap-4">
                 <div>
-                    <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
                         Dashboard
                     </h1>
-                    <p className="text-muted-foreground mt-2 text-lg">
+                    <p className="text-muted-foreground mt-1 md:mt-2 text-sm md:text-base lg:text-lg">
                         {isLandlord ? "Resumen general de tus propiedades y finanzas." : "Panel de Gestión y Cobros."}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg backdrop-blur-sm border">
-                    <Clock size={16} />
-                    <span>{today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg backdrop-blur-sm border w-fit">
+                    <Clock size={14} className="md:w-4 md:h-4" />
+                    <span className="hidden sm:inline">{today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    <span className="sm:hidden">{today.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                 </div>
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {/* Profitability Card (New) */}
-                <Card className="p-6 relative overflow-hidden group">
+                <Card className="p-4 md:p-6 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <div className={profitCents >= 0 ? "text-emerald-500" : "text-rose-500"}>
                             <TrendingUp size={80} />
@@ -124,7 +125,7 @@ export default async function LandlordDashboard() {
                 </Card>
 
                 {/* Deuda Vencida */}
-                <Card className={`p-6 relative overflow-hidden group border-destructive/20 ${overdueInvoices.length > 0 ? 'bg-red-50/50 dark:bg-red-950/10' : ''}`}>
+                <Card className={`p-4 md:p-6 relative overflow-hidden group border-destructive/20 ${overdueInvoices.length > 0 ? 'bg-red-50/50 dark:bg-red-950/10' : ''}`}>
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <AlertCircle size={80} className="text-destructive" />
                     </div>
@@ -146,7 +147,7 @@ export default async function LandlordDashboard() {
 
                 {/* Cobros Semana */}
                 <Link href="/invoices?status=PENDING&due=week">
-                    <Card className="p-6 relative overflow-hidden group cursor-pointer hover:border-primary/50 transition-colors">
+                    <Card className="p-4 md:p-6 relative overflow-hidden group cursor-pointer hover:border-primary/50 transition-colors">
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <Clock size={80} className="text-blue-500" />
                         </div>
@@ -168,7 +169,7 @@ export default async function LandlordDashboard() {
                 </Link>
 
                 {/* Ocupación */}
-                <Card className="p-6 relative overflow-hidden group">
+                <Card className="p-4 md:p-6 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Users size={80} className="text-emerald-500" />
                     </div>
