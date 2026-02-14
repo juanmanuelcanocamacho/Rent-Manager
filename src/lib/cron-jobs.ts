@@ -46,7 +46,14 @@ async function sendInvoiceDueReminders() {
 
     for (const invoice of invoices) {
         const userId = invoice.lease.tenant.userId;
+        const tenantEmail = invoice.lease.tenant.user.email;
         const landlordEmail = invoice.lease.landlord.email;
+
+        // Skip auto-generated placeholder emails
+        if (tenantEmail.endsWith('@alquiler.com')) {
+            console.log(`⏭️  Skipping ${invoice.lease.tenant.fullName} - email placeholder (@alquiler.com)`);
+            continue;
+        }
 
         const canSend = await canSendEmail(userId, NotificationType.INVOICE_DUE_SOON);
 
@@ -118,7 +125,14 @@ async function sendOverdueInvoiceReminders() {
 
     for (const invoice of invoices) {
         const userId = invoice.lease.tenant.userId;
+        const tenantEmail = invoice.lease.tenant.user.email;
         const landlordEmail = invoice.lease.landlord.email;
+
+        // Skip auto-generated placeholder emails
+        if (tenantEmail.endsWith('@alquiler.com')) {
+            console.log(`⏭️  Skipping ${invoice.lease.tenant.fullName} - email placeholder (@alquiler.com)`);
+            continue;
+        }
 
         const canSend = await canSendEmail(userId, NotificationType.INVOICE_OVERDUE);
 

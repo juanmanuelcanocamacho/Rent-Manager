@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/shared';
 import {
@@ -14,7 +15,9 @@ import {
     TrendingDown,
     LogOut,
     UserCog,
-    Shield
+    Shield,
+    Settings,
+    ChevronUp
 } from 'lucide-react';
 import { logout } from '@/actions/auth';
 import { Role } from '@prisma/client';
@@ -42,6 +45,7 @@ interface SidebarProps {
 
 export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
     const pathname = usePathname();
+    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
     return (
         <aside className="w-64 border-r bg-card h-screen sticky top-0 flex flex-col hidden md:flex">
@@ -98,14 +102,25 @@ export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
                 )}
             </nav>
 
-            <div className="p-4 border-t mt-auto">
+            <div className="p-4 border-t mt-auto relative">
                 {user && (
-                    <div className="mb-4 px-2">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                    <div className="relative">
+                        {/* Avatar clickable */}
+                        <button
+                            type="button"
+                            onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                            className={cn(
+                                "w-full flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer",
+                                profileMenuOpen ? "bg-accent" : "hover:bg-accent/50"
+                            )}
+                        >
+                            <div className={cn(
+                                "h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border-2 transition-colors",
+                                profileMenuOpen ? "border-primary" : "border-primary/20"
+                            )}>
                                 <Users size={20} />
                             </div>
-                            <div className="flex flex-col overflow-hidden">
+                            <div className="flex flex-col overflow-hidden flex-1 text-left">
                                 <span className="text-sm font-semibold truncate" title={user.email}>
                                     {user.email}
                                 </span>
@@ -114,24 +129,55 @@ export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
                                     {user.role === 'LANDLORD' ? 'PROPIETARIO' : user.role === 'MANAGER' ? 'GESTOR' : 'INQUILINO'}
                                 </span>
                             </div>
-                        </div>
+                            <ChevronUp
+                                size={16}
+                                className={cn(
+                                    "text-muted-foreground transition-transform duration-200",
+                                    profileMenuOpen ? "rotate-180" : ""
+                                )}
+                            />
+                        </button>
+
+                        {/* Dropdown menu */}
+                        {profileMenuOpen && (
+                            <>
+                                <div
+                                    className="fixed inset-0 z-40"
+                                    onClick={() => setProfileMenuOpen(false)}
+                                />
+                                <div className="absolute bottom-full left-0 right-0 mb-2 bg-card border rounded-lg shadow-lg z-50 overflow-hidden">
+                                    <Link
+                                        href="/settings"
+                                        onClick={() => setProfileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors text-sm cursor-pointer"
+                                    >
+                                        <Settings size={18} className="text-muted-foreground" />
+                                        <span>Configuración</span>
+                                    </Link>
+
+                                    <div className="border-t" />
+
+                                    <form action={async () => {
+                                        await logout();
+                                    }}>
+                                        <button
+                                            type="submit"
+                                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-destructive/5 transition-colors text-sm text-destructive cursor-pointer"
+                                        >
+                                            <LogOut size={18} />
+                                            <span>Cerrar sesión</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
-
-                <form action={async () => {
-                    await logout();
-                }}>
-                    <Button variant="ghost" className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10">
-                        <LogOut size={20} />
-                        Cerrar Sesión
-                    </Button>
-                </form>
             </div>
         </aside>
     );
 }
 
-import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
 export function MobileHeader({ userRole, user }: { userRole?: Role; user?: { email: string; role: Role } }) {
