@@ -10,6 +10,8 @@ export default async function ExpensesPage() {
     const user = await requireManagementAccess();
     const isLandlord = user.role === Role.LANDLORD;
     const landlordId = await getLandlordContext();
+    const country = (user as any).country || 'BOLIVIA';
+    const currencySymbol = country === 'SPAIN' ? '€' : 'Bs';
 
     const expenses = await db.expense.findMany({
         where: { landlordId: landlordId },
@@ -41,7 +43,7 @@ export default async function ExpensesPage() {
                     </div>
                     <div>
                         <p className="text-sm font-medium text-red-800 dark:text-red-300">Total Aprobado</p>
-                        <p className="text-2xl font-bold text-red-700 dark:text-red-400">{formatMoney(totalExpenses)}</p>
+                        <p className="text-2xl font-bold text-red-700 dark:text-red-400">{formatMoney(totalExpenses, country)}</p>
                     </div>
                 </Card>
             </div>
@@ -71,7 +73,7 @@ export default async function ExpensesPage() {
                                                     <Calendar size={14} /> {expense.date.toLocaleDateString()}
                                                 </span>
                                                 <span className="font-bold text-red-600">
-                                                    {formatMoney(expense.amountCents)}
+                                                    {formatMoney(expense.amountCents, country)}
                                                 </span>
                                                 <Badge variant="warning" className="text-[10px]">PENDIENTE</Badge>
                                             </div>
@@ -141,7 +143,7 @@ export default async function ExpensesPage() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <span className="font-bold text-lg text-red-600">-{formatMoney(expense.amountCents)}</span>
+                                        <span className="font-bold text-lg text-red-600">-{formatMoney(expense.amountCents, country)}</span>
 
                                         {/* Only Landlord can delete approved expenses */}
                                         {isLandlord && (
@@ -173,7 +175,7 @@ export default async function ExpensesPage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-sm font-medium">Monto (€)</label>
+                                    <label className="text-sm font-medium">Monto ({currencySymbol})</label>
                                     <Input name="amount" type="number" step="0.01" placeholder="0.00" required />
                                 </div>
                                 <div>

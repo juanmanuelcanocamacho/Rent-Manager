@@ -15,6 +15,7 @@ export default async function LandlordDashboard() {
     const isLandlord = user.role === Role.LANDLORD;
     const landlordId = await getLandlordContext();
 
+    const country = (user as any).country || 'BOLIVIA';
     const today = getNowInMadrid();
 
     // Fetch statistics
@@ -114,12 +115,12 @@ export default async function LandlordDashboard() {
                             <span className="font-semibold text-slate-600 dark:text-slate-300">Rentabilidad (Mes)</span>
                         </div>
                         <h3 className={`text-3xl font-bold tracking-tight ${profitCents >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                            {formatMoney(profitCents)}
+                            {formatMoney(profitCents, country)}
                         </h3>
                         <div className="flex gap-2 text-xs mt-1 text-muted-foreground">
-                            <span className="text-emerald-600">+{formatMoney(totalIncomeCents)}</span>
+                            <span className="text-emerald-600">+{formatMoney(totalIncomeCents, country)}</span>
                             <span>/</span>
-                            <span className="text-rose-600">-{formatMoney(totalExpensesCents)}</span>
+                            <span className="text-rose-600">-{formatMoney(totalExpensesCents, country)}</span>
                         </div>
                     </div>
                 </Card>
@@ -137,7 +138,7 @@ export default async function LandlordDashboard() {
                             <span className="font-semibold text-destructive">Deuda Vencida</span>
                         </div>
                         <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                            {formatMoney(overdueSum)}
+                            {formatMoney(overdueSum, country)}
                         </h3>
                         <p className="text-sm text-muted-foreground mt-1">
                             {overdueInvoices.length} facturas requieren atención
@@ -159,7 +160,7 @@ export default async function LandlordDashboard() {
                                 <span className="font-semibold text-blue-600">Cobros semana</span>
                             </div>
                             <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                                {formatMoney(pendingInvoices.reduce((acc, curr) => acc + curr.amountCents, 0))}
+                                {formatMoney(pendingInvoices.reduce((acc, curr) => acc + curr.amountCents, 0), country)}
                             </h3>
                             <p className="text-sm text-muted-foreground mt-1">
                                 {pendingInvoices.length} facturas (7 días)
@@ -224,7 +225,7 @@ export default async function LandlordDashboard() {
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <span className="font-bold text-lg text-slate-700 dark:text-slate-300">
-                                            {formatMoney(inv.amountCents)}
+                                            {formatMoney(inv.amountCents, country)}
                                         </span>
                                         <Button size="sm" variant="ghost" className="text-primary" asChild>
                                             <Link href={`/invoices?tenantId=${inv.lease.tenantId}&status=OVERDUE`}>

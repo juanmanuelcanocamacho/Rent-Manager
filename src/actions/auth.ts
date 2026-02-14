@@ -48,11 +48,16 @@ export async function registerLandlord(prevState: any, formData: FormData) {
         const email = formData.get('email') as string;
         const password = formData.get('password') as string;
         const code = formData.get('code') as string;
+        const country = formData.get('country') as string;
 
         const registrationCode = process.env.LANDLORD_REGISTRATION_CODE || 'RENT_ADMIN_2025';
 
         if (code !== registrationCode) {
             return { error: 'Código de registro inválido' };
+        }
+
+        if (!country || !['SPAIN', 'BOLIVIA'].includes(country)) {
+            return { error: 'Selecciona un país válido' };
         }
 
         const existingUser = await db.user.findUnique({
@@ -69,7 +74,8 @@ export async function registerLandlord(prevState: any, formData: FormData) {
             data: {
                 email,
                 passwordHash,
-                role: Role.LANDLORD
+                role: Role.LANDLORD,
+                country: country as any,
             }
         });
 

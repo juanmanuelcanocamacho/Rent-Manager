@@ -134,6 +134,22 @@ export default function LoginPage() {
             {mode === 'register' && (
               <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
                 <label className="text-sm font-medium leading-none">
+                  País
+                </label>
+                <select
+                  name="country"
+                  required
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+                >
+                  <option value="BOLIVIA">🇧🇴 Bolivia (Bs)</option>
+                  <option value="SPAIN">🇪🇸 España (€)</option>
+                </select>
+              </div>
+            )}
+
+            {mode === 'register' && (
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <label className="text-sm font-medium leading-none">
                   Código de Registro
                 </label>
                 <div className="relative">
