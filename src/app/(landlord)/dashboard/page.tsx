@@ -9,6 +9,8 @@ import {
     Clock, TrendingUp, AlertCircle, Users, CheckCircle, CreditCard,
     UserPlus, FileText, Home, TrendingDown, ChevronRight
 } from 'lucide-react';
+import { DashboardCharts } from '@/components/dashboard/dashboard-charts';
+import { getDashboardAnalytics } from '@/actions/dashboard';
 
 export default async function LandlordDashboard() {
     const user = await requireManagementAccess();
@@ -77,6 +79,9 @@ export default async function LandlordDashboard() {
         where: { landlordId: landlordId }
     });
     const occupancyRate = roomsTotal > 0 ? Math.round((roomsOccupied / roomsTotal) * 100) : 0;
+
+    // Fetch analytics data for charts
+    const analyticsData = await getDashboardAnalytics(6);
 
     return (
         <div className="space-y-8 max-w-7xl mx-auto">
@@ -314,6 +319,9 @@ export default async function LandlordDashboard() {
                     </div>
                 )}
             </div>
+
+            {/* Analytics Charts Section */}
+            <DashboardCharts initialData={analyticsData} />
         </div>
     );
 }
