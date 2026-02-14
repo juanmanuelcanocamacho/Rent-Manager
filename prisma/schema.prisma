@@ -207,6 +207,14 @@ enum NotificationType {
   REMINDER_3D
   DUE_TODAY
   OVERDUE_WEEKLY
+  INVOICE_DUE_SOON
+  INVOICE_OVERDUE
+  EXPENSE_PENDING_APPROVAL
+  CONTRACT_EXPIRING
+  PAYMENT_RECEIVED
+  WEEKLY_SUMMARY
+  MONTHLY_SUMMARY
+  MAINTENANCE_REQUEST
 }
 
 enum NotificationStatus {
@@ -226,4 +234,39 @@ enum ExpenseStatus {
   APPROVED
   PENDING
   REJECTED
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model EmailNotification {
+  id          String   @id @default(cuid())
+  type        NotificationType
+  recipientId String
+  subject     String
+  body        String   @db.Text
+  sentAt      DateTime?
+  status      EmailStatus @default(PENDING)
+  error       String?
+  metadata    String?  @db.Text // JSON string for additional data
+  createdAt   DateTime @default(now())
+  
+  @@index([recipientId, status])
+  @@index([status, createdAt])
+}
+
+model UserNotificationPreferences {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  emailEnabled          Boolean  @default(true)
+  invoiceReminders      Boolean  @default(true)
+  expenseNotifications  Boolean  @default(true)
+  contractNotifications Boolean  @default(true)
+  weeklySummary         Boolean  @default(true)
+  monthlySummary        Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }

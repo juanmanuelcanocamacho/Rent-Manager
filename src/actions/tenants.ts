@@ -37,10 +37,29 @@ export async function createTenant(formData: FormData) {
             .trim()
             .replace(/\s+/g, '')
             .replace(/[^a-z0-9]/g, '');
-        // Add minimal randomness to avoid collision if needed, but per request just name@alquiler.com
-        // We'll trust sanitized name is unique enough for now or Prisma will throw (we might want to catch that).
-        // Let's stick to simple generation as requested.
-        emailToUse = `${sanitized}@alquiler.com`;
+
+        // Check if base email exists
+        let baseEmail = `${sanitized}@alquiler.com`;
+        const existingUser = await db.user.findUnique({
+            where: { email: baseEmail }
+        });
+
+        // If email exists, add timestamp to make it unique
+        if (existingUser) {
+            const timestamp = Date.now().toString().slice(-6); // Last 6 digits
+            baseEmail = `${sanitized}${timestamp}@alquiler.com`;
+        }
+
+        emailToUse = baseEmail;
+    } else {
+        // If email is provided, check if it already exists
+        const existingUser = await db.user.findUnique({
+            where: { email: emailToUse }
+        });
+
+        if (existingUser) {
+            throw new Error(`El email ${emailToUse} ya está en uso. Por favor, usa otro email.`);
+        }
     }
 
     // Generate secure-ish friendly password: Name + 4 digits + Special Char
@@ -53,30 +72,38 @@ export async function createTenant(formData: FormData) {
     const hash = await bcrypt.hash(tempPassword, 10);
 
     // Transaction to create User and Profile
-    await db.$transaction(async (tx) => {
-        const user = await tx.user.create({
-            data: {
-                email: emailToUse as string,
-                passwordHash: hash,
-                role: 'TENANT',
-            },
+    try {
+        await db.$transaction(async (tx) => {
+            const user = await tx.user.create({
+                data: {
+                    email: emailToUse as string,
+                    passwordHash: hash,
+                    role: 'TENANT',
+                },
+            });
+
+            await tx.tenantProfile.create({
+                data: {
+                    userId: user.id,
+                    landlordId: landlordId,
+                    fullName: parsed.fullName as string,
+                    phoneE164: parsed.phone || undefined,
+                    documentNumber: parsed.documentNumber,
+                    notes: parsed.notes as string,
+                    whatsappOptIn: parsed.whatsappOptIn === 'on',
+                    generatedPassword: tempPassword,
+                },
+            });
         });
 
-        await tx.tenantProfile.create({
-            data: {
-                userId: user.id,
-                landlordId: landlordId,
-                fullName: parsed.fullName as string,
-                phoneE164: parsed.phone || undefined,
-                documentNumber: parsed.documentNumber,
-                notes: parsed.notes as string,
-                whatsappOptIn: parsed.whatsappOptIn === 'on',
-                generatedPassword: tempPassword,
-            },
-        });
-    });
-
-    console.log(`Created tenant ${emailToUse} with password: ${tempPassword}`);
+        console.log(`Created tenant ${emailToUse} with password: ${tempPassword}`);
+    } catch (error: any) {
+        console.error('Error creating tenant:', error);
+        if (error.code === 'P2002') {
+            throw new Error('El email ya está en uso. Por favor, intenta con otro email o nombre.');
+        }
+        throw error;
+    }
 
     revalidatePath('/tenants');
 }
