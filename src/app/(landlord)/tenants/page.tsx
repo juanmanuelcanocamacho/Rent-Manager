@@ -6,6 +6,7 @@ import { Badge, Button, Card, Input } from '@/components/ui/shared';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { User, Phone, Trash2, Pencil } from 'lucide-react';
 import { Role } from '@prisma/client';
+import { ImportTenantsModal } from '@/components/tenants/ImportTenantsModal';
 
 export default async function TenantsPage() {
     const user = await requireManagementAccess();
@@ -20,11 +21,16 @@ export default async function TenantsPage() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Inquilinos</h1>
-                <p className="text-muted-foreground text-sm md:text-base">
-                    {isLandlord ? "Gestiona los usuarios y perfiles de inquilinos." : "Directorio de inquilinos (Solo Lectura)."}
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold">Inquilinos</h1>
+                    <p className="text-muted-foreground text-sm md:text-base">
+                        {isLandlord ? "Gestiona los usuarios y perfiles de inquilinos." : "Directorio de inquilinos (Solo Lectura)."}
+                    </p>
+                </div>
+                {isLandlord && (
+                    <ImportTenantsModal />
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

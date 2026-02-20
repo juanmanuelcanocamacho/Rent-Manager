@@ -1,0 +1,196 @@
+'use client';
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/shared';
+import * as xlsx from 'xlsx';
+import { bulkCreateRooms } from '@/actions/rooms';
+import { X, Upload, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+export function ImportRoomsModal() {
+    const [isOpen, setIsOpen] = useState(false);
+    const [previewData, setPreviewData] = useState<any[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
+
+    const processFile = (file: File) => {
+        setError(null);
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            try {
+                const bstr = evt.target?.result;
+                const wb = xlsx.read(bstr, { type: 'binary' });
+                const wsname = wb.SheetNames[0];
+                const ws = wb.Sheets[wsname];
+                const data = xlsx.utils.sheet_to_json(ws);
+                setPreviewData(data);
+            } catch (err: any) {
+                setError("Error al leer el archivo. Asegúrate de que es un Excel válido.");
+                console.error(err);
+            }
+        };
+        reader.readAsBinaryString(file);
+    };
+
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) processFile(file);
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files?.[0];
+        if (file && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls') || file.name.endsWith('.csv'))) {
+            processFile(file);
+        } else {
+            setError("Por favor, sube un archivo Excel o CSV válido.");
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+    };
+
+    const handleConfirm = async () => {
+        if (previewData.length === 0) return;
+
+        setIsUploading(true);
+        setError(null);
+
+        try {
+            const plainData = JSON.parse(JSON.stringify(previewData));
+            await bulkCreateRooms(plainData);
+            setIsOpen(false);
+            setPreviewData([]);
+            router.refresh();
+        } catch (err: any) {
+            setError(err.message || 'Error al importar propiedades.');
+            console.error(err);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const closeModal = () => {
+        setIsOpen(false);
+        setPreviewData([]);
+        setError(null);
+    };
+
+    return (
+        <>
+            <Button onClick={() => setIsOpen(true)} variant="outline" className="flex items-center gap-2">
+                <FileSpreadsheet size={18} />
+                Importar Excel
+            </Button>
+
+            {isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in">
+                    <div className="bg-background rounded-xl shadow-lg w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+                        <div className="flex justify-between items-center p-6 border-b">
+                            <h2 className="text-xl font-bold">Importar Propiedades/Habitaciones desde Excel</h2>
+                            <button onClick={closeModal} className="p-2 hover:bg-muted rounded-full">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto flex-1">
+                            {error && (
+                                <div className="mb-4 p-4 bg-destructive/10 text-destructive rounded-lg flex items-start gap-3 text-sm">
+                                    <AlertCircle className="shrink-0 mt-0.5" size={18} />
+                                    <span>{error}</span>
+                                </div>
+                            )}
+
+                            {previewData.length === 0 ? (
+                                <div className="space-y-6">
+                                    <div
+                                        className="border-2 border-dashed border-input rounded-xl p-12 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors"
+                                        onDrop={handleDrop}
+                                        onDragOver={handleDragOver}
+                                    >
+                                        <div className="bg-primary/10 p-4 rounded-full mb-4 pointer-events-none">
+                                            <Upload className="text-primary w-8 h-8" />
+                                        </div>
+                                        <h3 className="text-lg font-medium mb-2 pointer-events-none">Sube tu archivo o arrástralo aquí</h3>
+                                        <p className="text-sm text-muted-foreground mb-6 pointer-events-none">Archivos soportados: .xlsx, .xls, .csv</p>
+                                        <input
+                                            type="file"
+                                            accept=".xlsx, .xls, .csv"
+                                            onChange={handleFileUpload}
+                                            className="block w-full text-sm text-slate-500
+                                                file:mr-4 file:py-2 file:px-4
+                                                file:rounded-full file:border-0
+                                                file:text-sm file:font-semibold
+                                                file:bg-primary file:text-primary-foreground
+                                                hover:file:bg-primary/90 cursor-pointer"
+                                        />
+                                    </div>
+                                    <div className="bg-muted p-4 rounded-lg flex items-center justify-between">
+                                        <div className="text-sm">
+                                            <p className="font-medium">¿Necesitas una plantilla?</p>
+                                            <p className="text-muted-foreground">Descarga nuestro archivo base para rellenar fácilmente.</p>
+                                        </div>
+                                        <Button variant="outline" size="sm" asChild>
+                                            <a href="/templates/import_rooms_template.xlsx" download>Descargar Plantilla</a>
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="font-medium">Previsualización de Datos ({previewData.length} registros)</h3>
+                                        <Button variant="outline" size="sm" onClick={() => setPreviewData([])} disabled={isUploading}>
+                                            Cambiar archivo
+                                        </Button>
+                                    </div>
+                                    <div className="border rounded-lg overflow-hidden overflow-x-auto">
+                                        <table className="w-full text-sm text-left whitespace-nowrap">
+                                            <thead className="text-xs text-muted-foreground bg-muted/50 uppercase">
+                                                <tr>
+                                                    <th className="px-6 py-3 w-1/3">Nombre Propiedad/Habitación</th>
+                                                    <th className="px-6 py-3 w-2/3">Notas</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {previewData.slice(0, 10).map((row, idx) => {
+                                                    const NameFieldname = Object.keys(row).find(k => k.toLowerCase().includes('nombre') || k.toLowerCase().includes('name'));
+                                                    const NameValue = NameFieldname ? row[NameFieldname] : '-';
+
+                                                    const NotesFieldname = Object.keys(row).find(k => k.toLowerCase().includes('nota') || k.toLowerCase().includes('note'));
+                                                    const NotesValue = NotesFieldname ? row[NotesFieldname] : '-';
+
+                                                    return (
+                                                        <tr key={idx} className="bg-background border-b hover:bg-muted/50">
+                                                            <td className="px-6 py-4 font-medium">{NameValue}</td>
+                                                            <td className="px-6 py-4 max-w-xs truncate">{NotesValue}</td>
+                                                        </tr>
+                                                    )
+                                                })}
+                                            </tbody>
+                                        </table>
+                                        {previewData.length > 10 && (
+                                            <div className="p-3 text-center text-xs text-muted-foreground bg-muted/20 border-t">
+                                                Mostrando los primeros 10 registros de {previewData.length}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {previewData.length > 0 && (
+                            <div className="p-6 border-t bg-muted/10 flex justify-end gap-3">
+                                <Button variant="ghost" onClick={closeModal} disabled={isUploading}>Cancelar</Button>
+                                <Button onClick={handleConfirm} disabled={isUploading}>
+                                    {isUploading ? 'Importando...' : 'Confirmar Importación'}
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}

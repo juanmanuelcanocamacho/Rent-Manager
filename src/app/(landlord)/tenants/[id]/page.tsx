@@ -49,7 +49,7 @@ export default async function EditTenantPage(props: { params: Promise<{ id: stri
                     </div>
                     <div>
                         <label className="text-sm font-medium">Teléfono (WhatsApp)</label>
-                        <PhoneInput name="phone" defaultValue={tenant.phoneE164} required />
+                        <PhoneInput name="phone" defaultValue={tenant.phoneE164 || ''} />
                         <p className="text-xs text-muted-foreground mt-1">Selecciona el país y escribe el número.</p>
                     </div>
                     <div className="flex items-center gap-2">

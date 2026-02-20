@@ -38,7 +38,7 @@ export function InvoiceFilters({ tenants }: InvoiceFiltersProps) {
     };
 
     return (
-        <div className="sticky top-[64px] z-30 bg-background/95 backdrop-blur-sm border-b pb-4 pt-2 mb-6 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
+        <div className="static bg-background/95 backdrop-blur-sm border-b pb-4 pt-2 mb-6 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
             <div className="flex-1 flex gap-4 overflow-x-auto pb-2 md:pb-0 items-center">
                 {/* Search */}
                 <div className="relative flex-1 min-w-[200px]">

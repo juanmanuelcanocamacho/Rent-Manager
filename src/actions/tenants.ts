@@ -207,3 +207,79 @@ export async function deleteTenant(tenantId: string) {
 }
 
 
+
+export async function bulkCreateTenants(tenantsData: any[]) {
+    const landlordId = await getLandlordContext();
+
+    await db.$transaction(async (tx) => {
+        for (const tenantData of tenantsData) {
+            const data = {
+                fullName: tenantData.fullName || tenantData.Nombres, // Handle both english and mapped
+                email: tenantData.email || tenantData.Email || undefined,
+                phone: tenantData.phone || tenantData.Teléfono || undefined,
+                documentNumber: tenantData.documentNumber || tenantData.DNI || undefined,
+                notes: tenantData.notes || tenantData.Notas || undefined,
+                whatsappOptIn: undefined,
+            };
+
+            const parsed = createTenantSchema.parse(data);
+
+            let emailToUse = parsed.email;
+            if (!emailToUse) {
+                const sanitized = parsed.fullName
+                    .toLowerCase()
+                    .trim()
+                    .replace(/\s+/g, '')
+                    .replace(/[^a-z0-9]/g, '');
+                emailToUse = `${sanitized}@alquiler.com`;
+
+                // If auto-generated email is already taken, we should probably append a random number
+                let count = 0;
+                let existingUser = await tx.user.findUnique({ where: { email: emailToUse } });
+                while (existingUser) {
+                    count++;
+                    emailToUse = `${sanitized}${count}@alquiler.com`;
+                    existingUser = await tx.user.findUnique({ where: { email: emailToUse } });
+                }
+            } else {
+                // Check if user provided email already exists
+                const existingUser = await tx.user.findUnique({ where: { email: emailToUse } });
+                if (existingUser) {
+                    throw new Error(`El email ${emailToUse} (perteneciente a ${parsed.fullName}) ya está registrado en el sistema.`);
+                }
+            }
+
+            const firstName = (parsed.fullName as string).split(' ')[0].replace(/[^a-zA-Z]/g, '');
+            const randomDigits = Math.floor(1000 + Math.random() * 9000); // 1000-9999
+            const specialChars = "!@#$%&*";
+            const specialChar = specialChars[Math.floor(Math.random() * specialChars.length)];
+            const tempPassword = `${firstName}${randomDigits}${specialChar}`;
+
+            const hash = await bcrypt.hash(tempPassword, 10);
+
+            const user = await tx.user.create({
+                data: {
+                    email: emailToUse as string,
+                    passwordHash: hash,
+                    role: 'TENANT',
+                },
+            });
+
+            await tx.tenantProfile.create({
+                data: {
+                    userId: user.id,
+                    landlordId: landlordId,
+                    fullName: parsed.fullName as string,
+                    phoneE164: parsed.phone || undefined,
+                    documentNumber: parsed.documentNumber,
+                    notes: parsed.notes as string,
+                    whatsappOptIn: parsed.whatsappOptIn === 'on',
+                    generatedPassword: tempPassword,
+                },
+            });
+            console.log(`Bulk created tenant ${emailToUse} with password: ${tempPassword}`);
+        }
+    });
+
+    revalidatePath('/tenants');
+}

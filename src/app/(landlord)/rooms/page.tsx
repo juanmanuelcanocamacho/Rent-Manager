@@ -5,6 +5,7 @@ import { requireManagementAccess, getLandlordContext } from '@/lib/rbac';
 import { Badge, Button, Card, Input } from '@/components/ui/shared';
 import { Trash2 } from 'lucide-react';
 import { Role } from '@prisma/client';
+import { ImportRoomsModal } from '@/components/rooms/ImportRoomsModal';
 
 export default async function RoomsPage() {
     const user = await requireManagementAccess();
@@ -18,11 +19,16 @@ export default async function RoomsPage() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Propiedades</h1>
-                <p className="text-muted-foreground text-sm md:text-base">
-                    {isLandlord ? "Gestiona tus propiedades." : "Listado de propiedades (Solo Lectura)."}
-                </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold">Propiedades</h1>
+                    <p className="text-muted-foreground text-sm md:text-base">
+                        {isLandlord ? "Gestiona tus propiedades." : "Listado de propiedades (Solo Lectura)."}
+                    </p>
+                </div>
+                {isLandlord && (
+                    <ImportRoomsModal />
+                )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

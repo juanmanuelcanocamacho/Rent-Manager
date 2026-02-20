@@ -40,7 +40,7 @@ export default function LandingPage() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
-              Nuevo: Rol de Encargado y Aprobación de Gastos
+              Nuevo: Importación masiva de Inquilinos y Propiedades por Excel
             </div>
 
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-white dark:via-slate-200 dark:to-white animate-in fade-in slide-in-from-bottom-6 duration-700">
@@ -87,7 +87,7 @@ export default function LandingPage() {
               <FeatureCard
                 icon={<Users className="text-blue-500" />}
                 title="Gestión de Inquilinos"
-                description="Perfiles detallados, historial de pagos y comunicación centralizada. Todo en un solo lugar."
+                description="Importa listados desde Excel, gestiona perfiles detallados e historiales de pagos en un solo lugar."
               />
               <FeatureCard
                 icon={<TrendingUp className="text-violet-500" />}
