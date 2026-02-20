@@ -1,341 +1,275 @@
-import { db } from '@/lib/db';
-import { requireManagementAccess, getLandlordContext } from '@/lib/rbac';
-import { getNowInMadrid } from '@/lib/dates';
-import { formatMoney } from '@/lib/money';
-import { Role } from '@prisma/client';
+import { getDashboardData } from '@/actions/dashboard';
 import { Card, Button } from '@/components/ui/shared';
 import Link from 'next/link';
+import { formatMoney } from '@/lib/money';
+import { getNowInMadrid } from '@/lib/dates';
 import {
     Clock, TrendingUp, AlertCircle, Users, CheckCircle, CreditCard,
-    UserPlus, FileText, Home, TrendingDown, ChevronRight
+    UserPlus, FileText, Home, TrendingDown, ChevronRight, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
+import { RevenueChart } from '@/components/dashboard/RevenueChart';
+import { ExpenseBreakdownChart } from '@/components/dashboard/ExpenseBreakdownChart';
+import { RecentActivityFeed } from '@/components/dashboard/RecentActivityFeed';
 
 export default async function LandlordDashboard() {
-    const user = await requireManagementAccess();
-    const isLandlord = user.role === Role.LANDLORD;
-    const landlordId = await getLandlordContext();
-
-    const country = (user as any).country || 'BOLIVIA';
+    // A single standardized call to our backend action
+    const data = await getDashboardData();
     const today = getNowInMadrid();
 
-    // Fetch statistics
-    const overdueInvoices = await db.invoice.findMany({
-        where: {
-            status: 'OVERDUE',
-            lease: { landlordId: landlordId }
-        },
-        include: { lease: { include: { tenant: true } } }
-    });
-
-    const overdueSum = overdueInvoices.reduce((acc, curr) => acc + curr.amountCents, 0);
-
-    // Fetch Expenses for Profitability
-    const currentMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-    const currentMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-    const monthlyExpenses = await db.expense.findMany({
-        where: {
-            landlordId: landlordId,
-            date: {
-                gte: currentMonthStart,
-                lte: currentMonthEnd
-            }
-        }
-    });
-
-    const monthlyIncome = await db.payment.findMany({
-        where: {
-            invoice: {
-                lease: { landlordId: landlordId }
-            },
-            paidDate: {
-                gte: currentMonthStart,
-                lte: currentMonthEnd
-            }
-        }
-    });
-
-    const totalExpensesCents = monthlyExpenses.reduce((acc, curr) => acc + curr.amountCents, 0);
-    const totalIncomeCents = monthlyIncome.reduce((acc, curr) => acc + curr.amountCents, 0);
-    const profitCents = totalIncomeCents - totalExpensesCents;
-
-    // Due coming 7 days
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-
-    const pendingInvoices = await db.invoice.findMany({
-        where: {
-            status: 'PENDING',
-            dueDate: { lte: nextWeek, gte: today },
-            lease: { landlordId: landlordId }
-        }
-    });
-
-    const roomsOccupied = await db.room.count({
-        where: { status: 'OCCUPIED', landlordId: landlordId }
-    });
-    const roomsTotal = await db.room.count({
-        where: { landlordId: landlordId }
-    });
-    const occupancyRate = roomsTotal > 0 ? Math.round((roomsOccupied / roomsTotal) * 100) : 0;
-
     return (
-        <div className="space-y-8 max-w-7xl mx-auto">
+        <div className="space-y-8 max-w-[1400px] mx-auto pb-10">
             {/* Header Section */}
-            <div className="flex flex-col gap-3 md:gap-4">
+            <div className="flex flex-col gap-3 md:gap-4 mb-2">
                 <div>
                     <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">
                         Dashboard
                     </h1>
                     <p className="text-muted-foreground mt-1 md:mt-2 text-sm md:text-base lg:text-lg">
-                        {isLandlord ? "Resumen general de tus propiedades y finanzas." : "Panel de Gestión y Cobros."}
+                        {data.isLandlord ? "Resumen integral de finanzas y propiedades." : "Panel de Gestión Operativa."}
                     </p>
                 </div>
-                <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground bg-white/50 dark:bg-black/20 p-2 rounded-lg backdrop-blur-sm border w-fit">
-                    <Clock size={14} className="md:w-4 md:h-4" />
-                    <span className="hidden sm:inline">{today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                    <span className="sm:hidden">{today.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                </div>
-            </div>
-
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                {/* Profitability Card (New) */}
-                <Card className="p-4 md:p-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <div className={profitCents >= 0 ? "text-emerald-500" : "text-rose-500"}>
-                            <TrendingUp size={80} />
-                        </div>
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-foreground bg-accent/30 dark:bg-accent/10 p-2.5 px-4 rounded-xl backdrop-blur-sm border w-fit shadow-sm">
+                        <Clock size={16} className="text-primary hidden md:block" />
+                        <span className="font-medium">{today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                     </div>
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                                <TrendingUp size={20} className={profitCents >= 0 ? "text-emerald-600" : "text-rose-600"} />
-                            </div>
-                            <span className="font-semibold text-slate-600 dark:text-slate-300">Rentabilidad (Mes)</span>
-                        </div>
-                        <h3 className={`text-3xl font-bold tracking-tight ${profitCents >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                            {formatMoney(profitCents, country)}
-                        </h3>
-                        <div className="flex gap-2 text-xs mt-1 text-muted-foreground">
-                            <span className="text-emerald-600">+{formatMoney(totalIncomeCents, country)}</span>
-                            <span>/</span>
-                            <span className="text-rose-600">-{formatMoney(totalExpensesCents, country)}</span>
-                        </div>
-                    </div>
-                </Card>
 
-                {/* Deuda Vencida */}
-                <Card className={`p-4 md:p-6 relative overflow-hidden group border-destructive/20 ${overdueInvoices.length > 0 ? 'bg-red-50/50 dark:bg-red-950/10' : ''}`}>
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <AlertCircle size={80} className="text-destructive" />
-                    </div>
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="p-2 bg-destructive/10 text-destructive rounded-lg">
-                                <AlertCircle size={20} />
-                            </div>
-                            <span className="font-semibold text-destructive">Deuda Vencida</span>
+                    {/* Quick Access Ribbon for top actions, replacing the old sidebar block */}
+                    {data.isLandlord && (
+                        <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+                            <QuickRibbonButton href="/tenants/new" icon={<UserPlus size={16} />} text="Inquilino" />
+                            <QuickRibbonButton href="/leases/new" icon={<FileText size={16} />} text="Contrato" />
+                            <QuickRibbonButton href="/invoices" icon={<CreditCard size={16} />} text="Facturar" />
+                            <QuickRibbonButton href="/expenses/new" icon={<TrendingDown size={16} />} text="Gasto" />
                         </div>
-                        <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                            {formatMoney(overdueSum, country)}
-                        </h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            {overdueInvoices.length} facturas requieren atención
-                        </p>
-                    </div>
-                </Card>
-
-                {/* Cobros Semana */}
-                <Link href="/invoices?status=PENDING&due=week">
-                    <Card className="p-4 md:p-6 relative overflow-hidden group cursor-pointer hover:border-primary/50 transition-colors">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <Clock size={80} className="text-blue-500" />
-                        </div>
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="p-2 bg-blue-500/10 text-blue-600 rounded-lg">
-                                    <Clock size={20} />
-                                </div>
-                                <span className="font-semibold text-blue-600">Cobros semana</span>
-                            </div>
-                            <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                                {formatMoney(pendingInvoices.reduce((acc, curr) => acc + curr.amountCents, 0), country)}
-                            </h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                {pendingInvoices.length} facturas (7 días)
-                            </p>
-                        </div>
-                    </Card>
-                </Link>
-
-                {/* Ocupación */}
-                <Card className="p-4 md:p-6 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Users size={80} className="text-emerald-500" />
-                    </div>
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="p-2 bg-emerald-500/10 text-emerald-600 rounded-lg">
-                                <CheckCircle size={20} />
-                            </div>
-                            <span className="font-semibold text-emerald-600">Ocupación</span>
-                        </div>
-                        <div className="flex items-end gap-2">
-                            <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                                {occupancyRate}%
-                            </h3>
-                            <span className="text-sm text-muted-foreground mb-1">
-                                ({roomsOccupied}/{roomsTotal})
-                            </span>
-                        </div>
-                        <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 mt-3 rounded-full overflow-hidden">
-                            <div
-                                className="bg-emerald-500 h-full rounded-full transition-all duration-1000"
-                                style={{ width: `${occupancyRate}%` }}
-                            />
-                        </div>
-                    </div>
-                </Card>
-            </div>
-
-            {/* Main Content Sections */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Alerts & Activity (2 cols wide) */}
-                <div className="lg:col-span-2 space-y-6">
-                    <h2 className="text-xl font-semibold flex items-center gap-2">
-                        <AlertCircle className="text-slate-400" size={20} />
-                        Atención Requerida
-                    </h2>
-
-                    {overdueInvoices.length > 0 ? (
-                        <div className="space-y-3">
-                            {overdueInvoices.slice(0, 5).map(inv => (
-                                <Card key={inv.id} className="p-4 flex items-center justify-between border-l-4 border-l-destructive hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg">
-                                            !
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-slate-800 dark:text-slate-200">{inv.lease.tenant.fullName}</p>
-                                            <p className="text-xs text-red-500 font-medium">
-                                                Venció el {inv.dueDate.toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-4">
-                                        <span className="font-bold text-lg text-slate-700 dark:text-slate-300">
-                                            {formatMoney(inv.amountCents, country)}
-                                        </span>
-                                        <Button size="sm" variant="ghost" className="text-primary" asChild>
-                                            <Link href={`/invoices?tenantId=${inv.lease.tenantId}&status=OVERDUE`}>
-                                                Revisar <ChevronRight size={16} />
-                                            </Link>
-                                        </Button>
-                                    </div>
-                                </Card>
-                            ))}
-                            {overdueInvoices.length > 5 && (
-                                <Button variant="ghost" className="w-full text-muted-foreground" asChild>
-                                    <Link href="/invoices?status=OVERDUE">
-                                        Ver {overdueInvoices.length - 5} facturas vencidas más...
-                                    </Link>
-                                </Button>
-                            )}
-                        </div>
-                    ) : (
-                        <Card className="p-12 flex flex-col items-center justify-center text-center border-dashed">
-                            <div className="bg-emerald-100 p-4 rounded-full text-emerald-600 mb-4">
-                                <CheckCircle size={32} />
-                            </div>
-                            <h3 className="text-lg font-semibold text-slate-800">¡Todo al día!</h3>
-                            <p className="text-muted-foreground max-w-sm">
-                                No hay pagos pendientes de atención en este momento.
-                            </p>
-                        </Card>
                     )}
                 </div>
+            </div>
 
-                {/* Right Column: Quick Actions - Only for Landlord generally, or simplified for Manager */}
-                {isLandlord && (
-                    <div className="space-y-6">
-                        <h2 className="text-xl font-semibold flex items-center gap-2">
-                            <CreditCard className="text-slate-400" size={20} />
-                            Acciones Rápidas
-                        </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-                            <QuickActionCard
-                                href="/tenants"
-                                icon={<UserPlus size={24} />}
-                                title="Nuevo Inquilino"
-                                description="Registrar entrada"
-                                color="bg-violet-500"
-                            />
-                            <QuickActionCard
-                                href="/leases"
-                                icon={<FileText size={24} />}
-                                title="Nuevo Contrato"
-                                description="Crear arrendamiento"
-                                color="bg-blue-500"
-                            />
-                            <QuickActionCard
-                                href="/rooms"
-                                icon={<Home size={24} />}
-                                title="Gestionar Propiedades"
-                                description="Ver habitaciones"
-                                color="bg-emerald-500"
-                            />
-                            <QuickActionCard
-                                href="/invoices"
-                                icon={<CreditCard size={24} />}
-                                title="Facturación"
-                                description="Ver cobros"
-                                color="bg-amber-500"
-                            />
+            {/* Main KPIs Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+
+                {/* 1. Rentabilidad Mes Actual */}
+                <Card className="p-5 md:p-6 relative overflow-hidden group border-t-4 border-t-emerald-500 hover:shadow-lg transition-all">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <TrendingUp size={100} className="text-emerald-500" />
+                    </div>
+                    <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-lg">
+                                    <TrendingUp size={18} />
+                                </div>
+                                <span className="font-semibold text-slate-600 dark:text-slate-300">Margen (Mes)</span>
+                            </div>
+                            <TrendBadge value={data.kpis.profitMom} />
+                        </div>
+                        <div>
+                            <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100 mb-1">
+                                {formatMoney(data.kpis.currentProfitCents, data.country)}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">Ganancia Neta Calculada</p>
                         </div>
                     </div>
-                )}
+                </Card>
 
-                {/* Manager Quick Actions? Maybe Expenses? */}
-                {!isLandlord && (
-                    <div className="space-y-6">
-                        <h2 className="text-xl font-semibold flex items-center gap-2">
-                            <CreditCard className="text-slate-400" size={20} />
-                            Acciones
-                        </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-                            <QuickActionCard
-                                href="/expenses"
-                                icon={<TrendingDown size={24} />}
-                                title="Registrar Gasto"
-                                description="Enviar gasto para aprobación"
-                                color="bg-amber-500"
-                            />
+                {/* 2. Deuda Vencida */}
+                <Card className={`p-5 md:p-6 relative overflow-hidden group border-t-4 border-t-rose-500 hover:shadow-lg transition-all ${data.kpis.overdueCount > 0 ? 'bg-rose-50/30 dark:bg-rose-950/20' : ''}`}>
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <AlertCircle size={100} className="text-rose-500" />
+                    </div>
+                    <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-rose-100 dark:bg-rose-900/30 text-rose-600 rounded-lg">
+                                    <AlertCircle size={18} />
+                                </div>
+                                <span className="font-semibold text-rose-600">Deuda Vencida</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100 mb-1">
+                                {formatMoney(data.kpis.overdueSumCents, data.country)}
+                            </h3>
+                            <p className="text-sm text-rose-600/80 font-medium flex items-center gap-1">
+                                {data.kpis.overdueCount} {data.kpis.overdueCount === 1 ? 'factura' : 'facturas'} en espera
+                            </p>
                         </div>
                     </div>
-                )}
+                </Card>
+
+                {/* 3. Cobros a 7 Días */}
+                <Card className="p-5 md:p-6 relative overflow-hidden group border-t-4 border-t-blue-500 hover:shadow-lg transition-all">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Clock size={100} className="text-blue-500" />
+                    </div>
+                    <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-lg">
+                                    <Clock size={18} />
+                                </div>
+                                <span className="font-semibold text-blue-600">Próx. 7 Días</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100 mb-1">
+                                {formatMoney(data.kpis.nextWeekIncomeCents, data.country)}
+                            </h3>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                Proyección de {data.kpis.nextWeekIncomeCount} {data.kpis.nextWeekIncomeCount === 1 ? 'cobro' : 'cobros'}
+                            </p>
+                        </div>
+                    </div>
+                </Card>
+
+                {/* 4. Ocupación */}
+                <Card className="p-5 md:p-6 relative overflow-hidden group border-t-4 border-t-indigo-500 hover:shadow-lg transition-all">
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <Users size={100} className="text-indigo-500" />
+                    </div>
+                    <div className="relative z-10 flex flex-col h-full justify-between gap-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-lg">
+                                    <CheckCircle size={18} />
+                                </div>
+                                <span className="font-semibold text-indigo-600">Ocupación</span>
+                            </div>
+                        </div>
+                        <div className="w-full">
+                            <div className="flex items-end gap-2 mb-2">
+                                <h3 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+                                    {data.kpis.occupancyRate}%
+                                </h3>
+                                <span className="text-sm text-muted-foreground mb-1 font-medium">
+                                    ({data.kpis.roomsOccupied}/{data.kpis.roomsTotal}) prop.
+                                </span>
+                            </div>
+                            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 mt-2 rounded-full overflow-hidden shadow-inner">
+                                <div
+                                    className="bg-indigo-500 h-full rounded-full transition-all duration-1000"
+                                    style={{ width: `${data.kpis.occupancyRate}%` }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </Card>
+
+            </div>
+
+            {/* Middle Row: Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                    <RevenueChart data={data.chartData.monthly} country={data.country} />
+                </div>
+                <div className="lg:col-span-1">
+                    <ExpenseBreakdownChart data={data.chartData.expensesBreakdown} country={data.country} />
+                </div>
+            </div>
+
+            {/* Bottom Row: Feeds and Attention Required */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+                {/* Recent Activity Timeline */}
+                <RecentActivityFeed activities={data.recentActivity} />
+
+                {/* Attention Required */}
+                <Card className="w-full flex flex-col h-full">
+                    <div className="p-4 md:p-6 pb-2 border-b/50 flex justify-between items-center">
+                        <div>
+                            <h3 className="text-lg font-semibold flex items-center gap-2 text-rose-600">
+                                <AlertCircle size={20} />
+                                Atención Requerida
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1">Facturas vencidas que necesitan gestión</p>
+                        </div>
+                    </div>
+                    <div className="p-4 md:p-6 flex-1 flex flex-col gap-4">
+                        {data.overdueInvoices.length > 0 ? (
+                            <>
+                                {data.overdueInvoices.slice(0, 4).map(inv => (
+                                    <div key={inv.id} className="p-4 rounded-xl border border-rose-100 dark:border-rose-900/30 bg-rose-50/50 dark:bg-rose-950/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-10 w-10 min-w-[40px] rounded-full bg-rose-200/50 dark:bg-rose-800/50 flex items-center justify-center text-rose-700 dark:text-rose-300 font-bold">
+                                                !
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-slate-800 dark:text-slate-200 leading-tight">{inv.lease.tenant.fullName}</p>
+                                                <p className="text-xs text-rose-500/80 font-medium mt-0.5">
+                                                    Venció el {inv.dueDate.toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto mt-2 sm:mt-0">
+                                            <span className="font-bold text-lg text-rose-700 dark:text-rose-400">
+                                                {formatMoney(inv.amountCents, data.country)}
+                                            </span>
+                                            <Button size="sm" variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-100" asChild>
+                                                <Link href={`/invoices?tenantId=${inv.lease.tenantId}&status=OVERDUE`}>
+                                                    Cobrar <ChevronRight size={16} className="ml-1" />
+                                                </Link>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {data.overdueInvoices.length > 4 && (
+                                    <Button variant="ghost" className="w-full text-muted-foreground mt-2" asChild>
+                                        <Link href="/invoices?status=OVERDUE">
+                                            Ver todas las {data.overdueInvoices.length} facturas vencidas
+                                        </Link>
+                                    </Button>
+                                )}
+                            </>
+                        ) : (
+                            <div className="flex-1 flex flex-col items-center justify-center text-center py-10 opacity-70">
+                                <div className="bg-emerald-100 dark:bg-emerald-900/30 p-4 rounded-full text-emerald-600 mb-4">
+                                    <CheckCircle size={40} />
+                                </div>
+                                <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200">¡Todo al día!</h3>
+                                <p className="text-muted-foreground text-sm mt-2 max-w-[250px]">
+                                    No hay pagos pendientes de cobro retrasado en este momento.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                </Card>
             </div>
         </div>
     );
 }
 
-function QuickActionCard({ href, icon, title, description, color }: { href: string, icon: React.ReactNode, title: string, description: string, color: string }) {
+// Helpers
+function QuickRibbonButton({ href, icon, text }: { href: string, icon: React.ReactNode, text: string }) {
     return (
         <Link href={href}>
-            <Card className="p-4 flex items-center gap-4 hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer group border-transparent hover:border-border/50 bg-white dark:bg-slate-900">
-                <div className={`${color} text-white p-3 rounded-xl shadow-lg shadow-${color.replace('bg-', '')}/20 group-hover:shadow-${color.replace('bg-', '')}/40 transition-shadow`}>
-                    {icon}
-                </div>
-                <div>
-                    <h3 className="font-semibold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">
-                        {title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                        {description}
-                    </p>
-                </div>
-                <ChevronRight className="ml-auto text-slate-300 group-hover:text-primary transition-colors" size={18} />
-            </Card>
+            <div className="flex items-center gap-2 bg-background border px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors whitespace-nowrap shadow-sm">
+                {icon}
+                <span>{text}</span>
+            </div>
         </Link>
+    );
+}
+
+function TrendBadge({ value }: { value: number }) {
+    const isPositive = value >= 0;
+    const isZero = value === 0;
+
+    if (isZero) {
+        return (
+            <div className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                <span>0% MoM</span>
+            </div>
+        );
+    }
+
+    return (
+        <div className={`flex items-center gap-0.5 text-xs font-medium px-2 py-1 rounded-full ${isPositive
+                ? 'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400'
+                : 'bg-rose-100/80 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400'
+            }`}>
+            {isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+            <span>{Math.abs(value)}% MoM</span>
+        </div>
     );
 }
