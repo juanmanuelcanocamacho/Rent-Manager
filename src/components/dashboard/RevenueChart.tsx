@@ -8,7 +8,7 @@ import { formatMoney } from '@/lib/money';
 
 interface RevenueChartProps {
     data: any[];
-    country: string;
+    country: 'SPAIN' | 'BOLIVIA';
 }
 
 export function RevenueChart({ data, country }: RevenueChartProps) {

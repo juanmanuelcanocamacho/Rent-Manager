@@ -9,7 +9,7 @@ export async function getDashboardData() {
     const user = await requireManagementAccess();
     const isLandlord = user.role === Role.LANDLORD;
     const landlordId = await getLandlordContext();
-    const country = (user as any).country || 'BOLIVIA';
+    const country = ((user as any).country as 'SPAIN' | 'BOLIVIA') || 'BOLIVIA';
 
     const now = new Date();
 

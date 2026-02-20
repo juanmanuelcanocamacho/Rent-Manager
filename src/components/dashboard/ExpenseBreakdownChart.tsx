@@ -9,7 +9,7 @@ import { PieChart as PieChartIcon } from 'lucide-react';
 
 interface ExpenseBreakdownChartProps {
     data: any[];
-    country: string;
+    country: 'SPAIN' | 'BOLIVIA';
 }
 
 export function ExpenseBreakdownChart({ data, country }: ExpenseBreakdownChartProps) {
