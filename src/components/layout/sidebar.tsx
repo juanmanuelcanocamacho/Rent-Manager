@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { logout } from '@/actions/auth';
 import { Role } from '@prisma/client';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -101,19 +102,22 @@ export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
             <div className="p-4 border-t mt-auto">
                 {user && (
                     <div className="mb-4 px-2">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
-                                <Users size={20} />
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                                    <Users size={20} />
+                                </div>
+                                <div className="flex flex-col overflow-hidden max-w-[100px]">
+                                    <span className="text-sm font-semibold truncate" title={user.email}>
+                                        {user.email}
+                                    </span>
+                                    <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">
+                                        <Shield size={10} />
+                                        {user.role === 'LANDLORD' ? 'PROPIETARIO' : user.role === 'MANAGER' ? 'GESTOR' : 'INQUILINO'}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex flex-col overflow-hidden">
-                                <span className="text-sm font-semibold truncate" title={user.email}>
-                                    {user.email}
-                                </span>
-                                <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">
-                                    <Shield size={10} />
-                                    {user.role === 'LANDLORD' ? 'PROPIETARIO' : user.role === 'MANAGER' ? 'GESTOR' : 'INQUILINO'}
-                                </span>
-                            </div>
+                            <ThemeToggle />
                         </div>
                     </div>
                 )}
@@ -144,9 +148,12 @@ export function MobileHeader({ userRole, user }: { userRole?: Role; user?: { ema
                 <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
                     Llavia
                 </h1>
-                <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
-                    {isOpen ? <X /> : <Menu />}
-                </Button>
+                <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                    <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
+                        {isOpen ? <X /> : <Menu />}
+                    </Button>
+                </div>
             </div>
 
             {isOpen && (
