@@ -10,6 +10,7 @@ import {
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { ExpenseBreakdownChart } from '@/components/dashboard/ExpenseBreakdownChart';
 import { RecentActivityFeed } from '@/components/dashboard/RecentActivityFeed';
+import { LlaviaCopilotWidget } from '@/components/dashboard/LlaviaCopilotWidget';
 
 export default async function LandlordDashboard() {
     // A single standardized call to our backend action
@@ -45,6 +46,13 @@ export default async function LandlordDashboard() {
                     )}
                 </div>
             </div>
+
+            {/* Llavia Copilot AI Summary */}
+            {data.isLandlord && (
+                <div className="mb-6">
+                    <LlaviaCopilotWidget />
+                </div>
+            )}
 
             {/* Main KPIs Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -265,8 +273,8 @@ function TrendBadge({ value }: { value: number }) {
 
     return (
         <div className={`flex items-center gap-0.5 text-xs font-medium px-2 py-1 rounded-full ${isPositive
-                ? 'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400'
-                : 'bg-rose-100/80 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400'
+            ? 'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400'
+            : 'bg-rose-100/80 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400'
             }`}>
             {isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
             <span>{Math.abs(value)}% MoM</span>

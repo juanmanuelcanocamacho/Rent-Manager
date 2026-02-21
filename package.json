@@ -15,8 +15,10 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.30",
     "@prisma/client": "^6.19.2",
     "@types/bcryptjs": "^2.4.6",
+    "ai": "^6.0.97",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
