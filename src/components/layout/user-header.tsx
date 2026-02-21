@@ -2,6 +2,7 @@
 
 import { UserCircle, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/shared';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { logout } from '@/actions/auth';
 import { Role } from '@prisma/client';
 
@@ -31,7 +32,8 @@ export function UserHeader({ user, showLogo }: UserHeaderProps) {
                 )}
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+                <ThemeToggle />
                 <div className="flex flex-col items-end mr-2">
                     <span className="text-sm font-semibold text-foreground leading-none">{user.email}</span>
                     <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-1 flex items-center gap-1">

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
 import { Button, Card } from '@/components/ui/shared';
+import { ThemeToggle } from '@/components/theme-toggle';
 import {
   Building2,
   Users,
@@ -22,7 +23,8 @@ export default function LandingPage() {
             <Building2 className="text-primary" />
             <span>Llavia</span>
           </div>
-          <nav className="flex gap-4">
+          <nav className="flex gap-4 items-center">
+            <ThemeToggle />
             <Link href="/login">
               <Button>Iniciar Sesión</Button>
             </Link>
