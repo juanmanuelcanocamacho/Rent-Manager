@@ -20,7 +20,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-6xl">
           <div className="flex items-center gap-2 font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
             <Building2 className="text-primary" />
-            <span>Gestión Alquiler</span>
+            <span>Llavia</span>
           </div>
           <nav className="flex gap-4">
             <Link href="/login">
@@ -140,7 +140,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 max-w-6xl flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
             <Building2 size={16} />
-            <span className="font-semibold">Gestión Alquiler</span>
+            <span className="font-semibold">Llavia</span>
           </div>
           <p>© {new Date().getFullYear()} Todos los derechos reservados.</p>
           <div className="flex gap-6">

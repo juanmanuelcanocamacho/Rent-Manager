@@ -25,7 +25,7 @@ export default async function TenantLayout({
             </main>
 
             <footer className="py-6 border-t bg-background/50 text-center text-sm text-muted-foreground">
-                &copy; {new Date().getFullYear()} Gestión Alquiler - Tu Panel de Inquilino
+                &copy; {new Date().getFullYear()} Llavia - Tu Panel de Inquilino
             </footer>
         </div>
     );

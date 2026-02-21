@@ -26,7 +26,7 @@ export function UserHeader({ user, showLogo }: UserHeaderProps) {
                         <div className="bg-primary p-1.5 rounded-lg">
                             <span className="text-white font-bold text-lg">G</span>
                         </div>
-                        <span className="font-bold text-xl tracking-tight hidden sm:inline">Gestión Alquiler</span>
+                        <span className="font-bold text-xl tracking-tight hidden sm:inline">Llavia</span>
                     </>
                 )}
             </div>

@@ -47,7 +47,7 @@ export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
         <aside className="w-64 border-r bg-card h-screen sticky top-0 flex flex-col hidden md:flex">
             <div className="p-6 border-b">
                 <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-                    Gestión Alquiler
+                    Llavia
                 </h1>
             </div>
 
@@ -142,7 +142,7 @@ export function MobileHeader({ userRole, user }: { userRole?: Role; user?: { ema
         <header className="md:hidden border-b bg-card sticky top-0 z-50">
             <div className="p-4 flex items-center justify-between bg-card">
                 <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-                    Gestión Alquiler
+                    Llavia
                 </h1>
                 <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
                     {isOpen ? <X /> : <Menu />}

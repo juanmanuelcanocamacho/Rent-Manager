@@ -25,7 +25,7 @@ export default function LoginPage() {
         <div className="relative z-10">
           <Link href="/" className="inline-flex items-center gap-2 font-bold text-xl text-white hover:opacity-80 transition-opacity">
             <Building2 className="text-primary" />
-            <span>Gestión Alquiler</span>
+            <span>Llavia</span>
           </Link>
         </div>
 
@@ -38,7 +38,7 @@ export default function LoginPage() {
           <p className="text-slate-300 text-lg mb-8 leading-relaxed">
             {mode === 'login'
               ? "Únete a la plataforma que centraliza inquilinos, contratos y finanzas. Todo lo que necesitas para escalar tu patrimonio sin perder el control."
-              : "Regístrate como propietario y accede a las herramientas más potentes del mercado para la gestión de alquileres."}
+              : "Regístrate como propietario y accede a las herramientas más potentes del mercado con Llavia."}
           </p>
           <div className="space-y-4">
             <div className="flex items-center gap-3">
@@ -63,7 +63,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 text-sm text-slate-500">
-          © {new Date().getFullYear()} Gestión Alquiler. Todos los derechos reservados.
+          © {new Date().getFullYear()} Llavia. Todos los derechos reservados.
         </div>
       </div>
 

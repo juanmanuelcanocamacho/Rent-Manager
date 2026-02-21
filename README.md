@@ -1,4 +1,4 @@
-# Rent Manager MVP
+# Llavia
 
 Application for property management built with Next.js 15, Prisma, Tailwind, and Auth.js.
 

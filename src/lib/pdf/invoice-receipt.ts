@@ -28,11 +28,11 @@ export function generateInvoiceReceipt(data: InvoiceData) {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(28);
     doc.setFont('helvetica', 'bold');
-    doc.text('RENT MANAGER', 20, 25);
+    doc.text('LLAVIA', 20, 25);
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text('Sistema de Gestión de Alquileres', 20, 32);
+    doc.text('Llavia', 20, 32);
 
     // Document Title
     doc.setTextColor(0, 0, 0);
@@ -127,7 +127,7 @@ export function generateInvoiceReceipt(data: InvoiceData) {
     doc.setFont('helvetica', 'normal');
     doc.text('¡Gracias por su confianza!', pageWidth / 2, 270, { align: 'center' });
     doc.setFontSize(8);
-    doc.text('Este es un documento oficial generado por Rent Manager.', pageWidth / 2, 275, { align: 'center' });
+    doc.text('Este es un documento oficial generado por Llavia.', pageWidth / 2, 275, { align: 'center' });
 
     // Save
     doc.save(`recibo_${data.tenantName.replace(/\s+/g, '_').toLowerCase()}_${data.id.substring(0, 8)}.pdf`);

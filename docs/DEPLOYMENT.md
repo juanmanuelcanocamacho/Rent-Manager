@@ -1,4 +1,4 @@
-# Guía de Despliegue y Mantenimiento - Rent Manager
+# Guía de Despliegue y Mantenimiento - Llavia
 
 Este documento resume los pasos necesarios para desplegar nuevas versiones y las lecciones aprendidas durante la configuración del entorno de producción.
 
