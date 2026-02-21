@@ -172,26 +172,26 @@ export default async function TenantDashboard() {
                     <div>
                         <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-4 ml-1">Acceso Rápido</h4>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
-                            <button className="group bg-card hover:bg-primary/5 rounded-2xl p-6 border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center gap-3">
-                                <div className="p-3.5 bg-primary/10 rounded-2xl text-primary group-hover:scale-110 transition-transform">
+                            <button className="group bg-card hover:bg-primary/5 dark:hover:bg-primary/20 rounded-2xl p-6 border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center gap-3">
+                                <div className="p-3.5 bg-primary/10 dark:bg-primary/30 rounded-2xl text-primary group-hover:scale-110 transition-transform">
                                     <FileText size={24} />
                                 </div>
                                 <span className="text-sm font-bold">Contrato</span>
                             </button>
-                            <button className="group bg-card hover:bg-emerald-50 rounded-2xl p-6 border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center gap-3">
-                                <div className="p-3.5 bg-emerald-500/10 rounded-2xl text-emerald-600 group-hover:scale-110 transition-transform">
+                            <button className="group bg-card hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-2xl p-6 border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center gap-3">
+                                <div className="p-3.5 bg-emerald-500/10 dark:bg-emerald-500/30 rounded-2xl text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
                                     <CreditCard size={24} />
                                 </div>
                                 <span className="text-sm font-bold">Recibos</span>
                             </button>
-                            <button className="group bg-card hover:bg-orange-50 rounded-2xl p-6 border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center gap-3">
-                                <div className="p-3.5 bg-orange-500/10 rounded-2xl text-orange-600 group-hover:scale-110 transition-transform">
+                            <button className="group bg-card hover:bg-orange-50 dark:hover:bg-orange-950/50 rounded-2xl p-6 border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center gap-3">
+                                <div className="p-3.5 bg-orange-500/10 dark:bg-orange-500/30 rounded-2xl text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
                                     <AlertCircle size={24} />
                                 </div>
                                 <span className="text-sm font-bold">Incidencias</span>
                             </button>
-                            <button className="group bg-card hover:bg-blue-50 rounded-2xl p-6 border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center gap-3">
-                                <div className="p-3.5 bg-blue-500/10 rounded-2xl text-blue-600 group-hover:scale-110 transition-transform">
+                            <button className="group bg-card hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-2xl p-6 border shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 flex flex-col items-center gap-3">
+                                <div className="p-3.5 bg-blue-500/10 dark:bg-blue-500/30 rounded-2xl text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
                                     <Building2 size={24} />
                                 </div>
                                 <span className="text-sm font-bold">Normas</span>
@@ -229,9 +229,9 @@ export default async function TenantDashboard() {
 
                     <div className="grid grid-cols-1 gap-4">
                         <Button asChild size="lg" className="w-full shadow-lg shadow-primary/20 h-14 rounded-2xl bg-primary hover:bg-primary/90 transition-all active:scale-[0.98]">
-                            <a href="/me/invoices" className="flex justify-between items-center group px-1">
+                            <a href="/me/invoices" className="flex justify-between items-center group px-1 text-primary-foreground">
                                 <span className="font-bold tracking-tight">Ver Historial de Pagos</span>
-                                <div className="p-1 bg-white/20 rounded-full group-hover:translate-x-1 transition-transform">
+                                <div className="p-1 bg-white/20 dark:bg-black/20 rounded-full group-hover:translate-x-1 transition-transform">
                                     <ArrowRight size={18} />
                                 </div>
                             </a>
