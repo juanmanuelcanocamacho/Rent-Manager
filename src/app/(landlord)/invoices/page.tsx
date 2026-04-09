@@ -43,15 +43,26 @@ export default async function InvoicesPage(props: { searchParams: Promise<{ stat
     const now = getNowInMadrid();
     const thirtyDaysFromNow = new Date(now);
     thirtyDaysFromNow.setDate(now.getDate() + 30);
+    
+    // Dynamic Overdue Checker
+    const isOverdue = (i: any) => {
+        if (i.status === 'OVERDUE') return true;
+        if (i.status === 'PENDING') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return new Date(i.dueDate).getTime() < today.getTime();
+        }
+        return false;
+    };
 
     const totalDebtCents = allInvoices
-        .filter(i => i.status === 'OVERDUE')
+        .filter(i => isOverdue(i))
         .reduce((sum, i) => sum + i.amountCents, 0);
 
-    const overdueCount = allInvoices.filter(i => i.status === 'OVERDUE').length;
+    const overdueCount = allInvoices.filter(i => isOverdue(i)).length;
 
     const upcomingCents = allInvoices
-        .filter(i => (i.status === 'PENDING' || i.status === 'PAYMENT_PROCESSING') && i.dueDate <= thirtyDaysFromNow && i.dueDate >= now)
+        .filter(i => (i.status === 'PENDING' || i.status === 'PAYMENT_PROCESSING') && !isOverdue(i) && i.dueDate <= thirtyDaysFromNow && i.dueDate >= now)
         .reduce((sum, i) => sum + i.amountCents, 0);
 
     // Identify tenants up to date (Tenants with NO overdue invoices)
@@ -65,7 +76,7 @@ export default async function InvoicesPage(props: { searchParams: Promise<{ stat
     });
 
     const tenantsWithOverdue = new Set(
-        allInvoices.filter(i => i.status === 'OVERDUE').map(i => i.lease.tenantId)
+        allInvoices.filter(i => isOverdue(i)).map(i => i.lease.tenantId)
     );
 
     const upToDateCount = allTenants.length - tenantsWithOverdue.size;
@@ -74,25 +85,7 @@ export default async function InvoicesPage(props: { searchParams: Promise<{ stat
     let filteredInvoices = allInvoices;
 
     // Filter by Status
-    if (statusFilter === 'OVERDUE') {
-        filteredInvoices = filteredInvoices.filter(i => i.status === 'OVERDUE');
-    } else if (statusFilter === 'UP_TO_DATE' || statusFilter === 'PAID') { // "Al día" broadly means paid or pending but not overdue. UI says "Al día". But filter dropdown has Paid, Pending, Overdue in previous code. New plan says: Vencidas, Al día, Por vencer, Todas.
-        // Logic for "Al día" filter in list: Show tenants who are up to date? Or show Paid invoices?
-        // User request: "Estados del filtro: Vencidas, Al día, Por vencer, Todas"
-        // Let's map these:
-        // OVERDUE -> invoices.status == OVERDUE
-        // UP_TO_DATE -> Invoices paid? Or active leases with no overdue?
-        // Interpretation: Show invoices that represent "good standing" (Resolved/Paid) OR just filter tenants?
-        // Actually, the view is "Tenant Cards". The filter applies to which *tenants* we see OR which *invoices* we see?
-        // If I select "Vencidas", I expect to see Tenants who have overdue invoices.
-        // If I select "Al día", I expect to see Tenants who are up to date.
-        // If I select "Todas", I see every tenant.
-
-        // Let's filter the TENANTS list based on the criteria, but pass their relevant invoices.
-        // Actually, filtering logic is complex.
-        // Let's keep logic simple:
-        // We will filter the list of TENANTS to display.
-    }
+    // We will handle filtering in visibleTenants
 
     // 4. Group Invoices by Tenant
     const invoicesByTenant: Record<string, typeof allInvoices> = {};
@@ -103,15 +96,12 @@ export default async function InvoicesPage(props: { searchParams: Promise<{ stat
     });
 
     // 5. Prepare Tenant List
-    // We want to show cards for ALL tenants (that match search/filter).
-    // If a tenant has no invoices, do we show them? Yes, with "Al día" status probably.
-
     let visibleTenants = allTenants.map(t => {
         const tenantInvoices = invoicesByTenant[t.id] || [];
-        // Determine status for sorting/filtering
-        const hasOverdue = tenantInvoices.some(i => i.status === 'OVERDUE');
+        // Determine status for sorting/filtering using dynamic check
+        const hasOverdue = tenantInvoices.some(i => isOverdue(i));
         const nextPayment = tenantInvoices
-            .filter(i => i.status === 'PENDING' || i.status === 'PAYMENT_PROCESSING')
+            .filter(i => (i.status === 'PENDING' || i.status === 'PAYMENT_PROCESSING') && !isOverdue(i))
             .sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())[0];
 
         return {

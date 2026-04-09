@@ -14,9 +14,20 @@ interface TenantBillingCardProps {
 export function TenantBillingCard({ tenantName, invoices }: TenantBillingCardProps) {
     const [expanded, setExpanded] = useState(false);
 
+    // Helper to dynamically check if an invoice is overdue
+    const isOverdue = (i: any) => {
+        if (i.status === 'OVERDUE') return true;
+        if (i.status === 'PENDING') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return new Date(i.dueDate).getTime() < today.getTime();
+        }
+        return false;
+    };
+
     // Calculate States
-    const overdueInvoices = invoices.filter(i => i.status === 'OVERDUE');
-    const pendingInvoices = invoices.filter(i => i.status === 'PENDING' || i.status === 'PAYMENT_PROCESSING');
+    const overdueInvoices = invoices.filter(i => isOverdue(i));
+    const pendingInvoices = invoices.filter(i => (i.status === 'PENDING' || i.status === 'PAYMENT_PROCESSING') && !isOverdue(i));
     const paidInvoices = invoices.filter(i => i.status === 'PAID');
 
     // Sort logic: Overdue first, then Pending (asc date), then Paid (desc date)

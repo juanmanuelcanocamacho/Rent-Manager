@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import React, { useState } from 'react';
-import { Button, Card } from '@/components/ui/shared';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button, Card, Badge } from '@/components/ui/shared';
 import { ThemeToggle } from '@/components/theme-toggle';
 import {
   Building2,
@@ -15,499 +16,584 @@ import {
   Wallet,
   Check,
   Star,
-  Quote
+  Quote,
+  Zap,
+  Globe,
+  Lock,
+  BarChart3,
+  MousePointer2
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+// --- Components ---
+
+const NavItem = ({ href, children }: { href: string; children: React.ReactNode }) => (
+  <Link 
+    href={href} 
+    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors relative group"
+  >
+    {children}
+    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
+  </Link>
+);
+
+const FeatureCard = ({ 
+  icon: Icon, 
+  title, 
+  description, 
+  className,
+  delay = 0 
+}: { 
+  icon: any, 
+  title: string, 
+  description: string, 
+  className?: string,
+  delay?: number
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5, delay }}
+    className={cn(
+      "group relative overflow-hidden rounded-3xl border bg-card/50 p-8 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2",
+      className
+    )}
+  >
+    <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
+    
+    <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
+      <Icon size={24} />
+    </div>
+    
+    <h3 className="text-xl font-bold mb-3 tracking-tight">{title}</h3>
+    <p className="text-muted-foreground leading-relaxed">
+      {description}
+    </p>
+  </motion.div>
+);
+
+const PricingFeature = ({ text }: { text: string }) => (
+  <li className="flex items-center gap-3 text-muted-foreground group">
+    <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+      <Check size={12} className="text-primary" />
+    </div>
+    <span className="text-sm">{text}</span>
+  </li>
+);
+
+// --- Sections ---
 
 export default function LandingPage() {
   const [isAnnual, setIsAnnual] = useState(true);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-primary/20">
-      {/* Navigation */}
-      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-6xl">
-          <div className="flex items-center gap-2 font-bold text-2xl tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-            <Building2 className="text-primary h-7 w-7" />
-            <span>Llavia</span>
-          </div>
+    <div className="min-h-screen bg-background selection:bg-primary/30 selection:text-primary-foreground font-sans">
+      {/* Background Orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/10 rounded-full blur-[120px] animate-pulse delay-700" />
+      </div>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-            <Link href="#features" className="hover:text-foreground transition-colors">Características</Link>
-            <Link href="#pricing" className="hover:text-foreground transition-colors">Precios</Link>
-            <Link href="#testimonials" className="hover:text-foreground transition-colors">Testimonios</Link>
+      {/* Navigation */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/60 backdrop-blur-xl transition-all duration-300">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-7xl">
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20 group-hover:rotate-12 transition-transform duration-300">
+              <Building2 size={24} />
+            </div>
+            <span className="font-extrabold text-2xl tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground group-hover:to-primary transition-all duration-300">
+              Llavia
+            </span>
+          </Link>
+
+          <nav className="hidden md:flex items-center gap-8">
+            <NavItem href="#features">Características</NavItem>
+            <NavItem href="#pricing">Precios</NavItem>
+            <NavItem href="#testimonials">Testimonios</NavItem>
           </nav>
 
-          <div className="flex gap-4 items-center">
+          <div className="flex items-center gap-3">
             <ThemeToggle />
-            <div className="hidden sm:block">
+            <div className="hidden sm:flex items-center gap-3">
               <Link href="/login">
-                <Button variant="ghost" className="font-medium">Iniciar Sesión</Button>
+                <Button variant="ghost" className="font-semibold">Log in</Button>
+              </Link>
+              <Link href="/login">
+                <Button className="rounded-full shadow-lg shadow-primary/25 px-6 font-bold hover:scale-105 active:scale-95 transition-all">
+                  Empezar Gratis
+                </Button>
               </Link>
             </div>
-            <Link href="/login">
-              <Button className="font-semibold shadow-lg shadow-primary/20 rounded-full px-6">Empezar Gratis</Button>
-            </Link>
           </div>
         </div>
       </header>
 
-      <main className="flex-1">
+      <main>
         {/* Hero Section */}
-        <section className="relative pt-24 pb-32 overflow-hidden">
-          {/* Background decorations */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-primary/10 via-background to-background -z-10 blur-3xl rounded-full opacity-50 dark:opacity-20" />
-
-          <div className="container mx-auto px-4 max-w-5xl text-center relative z-10">
-            <div
-              className="animate-in fade-in slide-in-from-bottom-4 duration-700 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8"
+        <section className="relative pt-20 pb-32 overflow-hidden">
+          <div className="container mx-auto px-4 max-w-7xl relative z-10 text-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border-primary/20 text-primary text-sm font-semibold mb-8 shadow-sm"
             >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              <Badge variant="success" className="animate-pulse">Nuevo</Badge>
+              <span>Importación inteligente desde Excel disponible</span>
+              <ArrowRight size={14} />
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="text-6xl md:text-8xl font-black tracking-tight mb-8 leading-[0.9] lg:leading-[0.85]"
+            >
+              Gestiona tus rentas <br />
+              <span className="text-primary italic relative">
+                sin complicaciones
+                <svg className="absolute -bottom-2 left-0 w-full h-3 text-primary/30" viewBox="0 0 100 10" preserveAspectRatio="none">
+                  <path d="M0 5 Q 25 0, 50 5 T 100 5" fill="none" stroke="currentColor" strokeWidth="4" />
+                </svg>
               </span>
-              Nuevo: Importación masiva desde Excel disponible
-            </div>
+            </motion.h1>
 
-            <h1
-              className="animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150 fill-mode-both text-5xl md:text-7xl font-extrabold tracking-tight mb-6 text-foreground leading-[1.1]"
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto font-medium leading-relaxed"
             >
-              Gestiona tus alquileres <br className="hidden md:block" />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-                sin dolores de cabeza
-              </span>
-            </h1>
+              La plataforma definitiva para propietarios que buscan automatizar sus cobros, 
+              organizar inquilinos y maximizar su rentabilidad. Todo en un solo lugar.
+            </motion.p>
 
-            <p
-              className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300 fill-mode-both text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto font-light leading-relaxed"
-            >
-              Abandona las hojas de cálculo. Centraliza inquilinos, contratos, recibos y rentabilidad en un software intuitivo diseñado para propietarios modernos.
-            </p>
-
-            <div
-              className="animate-in fade-in slide-in-from-bottom-10 duration-700 delay-500 fill-mode-both flex flex-col sm:flex-row gap-4 justify-center items-center"
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="flex flex-col sm:flex-row gap-6 justify-center items-center"
             >
               <Link href="/login" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full text-lg px-8 h-14 rounded-full gap-2 shadow-xl shadow-primary/25 hover:scale-105 transition-transform">
-                  Prueba Gratuita de 14 días <ArrowRight size={18} />
+                <Button size="lg" className="w-full text-xl px-12 h-16 rounded-full gap-2 shadow-2xl shadow-primary/30 hover:scale-105 transition-all font-bold">
+                  Prueba 14 días gratis <Zap size={20} className="fill-current" />
                 </Button>
               </Link>
-              <p className="text-sm text-muted-foreground mt-2 sm:mt-0 sm:ml-4">
-                No requiere tarjeta de crédito
-              </p>
-            </div>
+              <div className="flex -space-x-3 items-center">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-10 w-10 rounded-full border-2 border-background overflow-hidden">
+                    <img src={`https://i.pravatar.cc/100?u=${i + 10}`} alt="User" />
+                  </div>
+                ))}
+                <div className="pl-6 text-sm font-semibold text-muted-foreground">
+                  +500 propietarios confían en nosotros
+                </div>
+              </div>
+            </motion.div>
 
-            {/* Mockup Image/Dashboard Preview */}
-            <div
-              className="animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-700 fill-mode-both mt-20 relative mx-auto max-w-5xl"
+            {/* Dashboard Mockup - Refined */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.5 }}
+              className="mt-24 relative max-w-6xl mx-auto group"
             >
-              <div className="rounded-2xl border bg-background/50 backdrop-blur-sm p-2 shadow-2xl shadow-primary/10">
-                <div className="rounded-xl overflow-hidden border bg-card">
-                  {/* Fake Dashboard Header */}
-                  <div className="h-12 border-b bg-muted/50 flex items-center px-4 gap-2">
-                    <div className="flex gap-1.5">
-                      <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                      <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                      <div className="w-3 h-3 rounded-full bg-green-500/80" />
+              {/* Decorative Glow */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-[2.5rem] blur opacity-20 group-hover:opacity-40 transition-opacity duration-500" />
+              
+              <div className="relative rounded-[2rem] border bg-card p-3 shadow-2xl overflow-hidden glass">
+                <div className="rounded-[1.5rem] overflow-hidden border bg-background/50 backdrop-blur-md">
+                  {/* Fake UI simulation */}
+                  <div className="h-10 bg-muted/30 border-b flex items-center px-6 gap-2">
+                    <div className="flex gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500/50" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
+                      <div className="w-3 h-3 rounded-full bg-green-500/50" />
+                    </div>
+                    <div className="mx-auto text-[10px] text-muted-foreground font-mono bg-muted/50 px-3 py-1 rounded-md">
+                      app.llavia.com/dashboard
                     </div>
                   </div>
-                  {/* Llavia Real Dashboard UI Simulation */}
-                  <div className="flex flex-col sm:flex-row h-full max-h-[500px] overflow-hidden opacity-95 text-left bg-slate-50 dark:bg-slate-900 rounded-b-xl border-t-0">
-                    {/* Sidebar Mockup */}
-                    <div className="w-56 border-r bg-white dark:bg-slate-950 flex-col hidden sm:flex shrink-0">
-                      <div className="h-16 flex items-center px-6">
-                        <div className="font-bold text-xl text-primary flex items-center gap-2">
-                          Llavia
-                        </div>
-                      </div>
-                      <div className="flex-1 px-3 py-4 space-y-1">
-                        <div className="bg-muted/50 text-foreground font-medium rounded-md px-3 py-2 text-sm flex items-center gap-2">
-                          <LayoutDashboard className="h-4 w-4" /> Dashboard
-                        </div>
-                        <div className="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 text-sm flex items-center gap-2">
-                          <Building2 className="h-4 w-4" /> Propiedades
-                        </div>
-                        <div className="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 text-sm flex items-center gap-2">
-                          <Users className="h-4 w-4" /> Inquilinos
-                        </div>
-                        <div className="text-muted-foreground hover:text-foreground rounded-md px-3 py-2 text-sm flex items-center gap-2">
-                          <Wallet className="h-4 w-4" /> Facturación
-                        </div>
+                  
+                  <div className="p-8 text-left grid md:grid-cols-[240px_1fr] gap-8 min-h-[500px]">
+                    <div className="hidden md:block space-y-6">
+                      <div className="h-4 w-32 bg-primary/20 rounded-full animate-pulse" />
+                      <div className="space-y-3">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <div key={i} className={cn("h-10 rounded-xl bg-muted/20 flex items-center px-4 gap-3", i === 1 && "bg-primary/10 border-l-4 border-primary")}>
+                            <div className="h-4 w-4 rounded bg-foreground/10" />
+                            <div className="h-3 w-20 bg-foreground/10 rounded" />
+                          </div>
+                        ))}
                       </div>
                     </div>
-
-                    {/* Main Content Mockup */}
-                    <div className="flex-1 flex flex-col pt-4 px-6 pb-6 overflow-hidden bg-slate-50/50 dark:bg-background">
-                      <div className="flex justify-between items-start mb-6">
-                        <div>
-                          <h2 className="text-2xl font-bold tracking-tight text-primary">Dashboard</h2>
-                          <p className="text-sm text-muted-foreground">Resumen integral de finanzas y propiedades.</p>
+                    
+                    <div className="space-y-8">
+                      <div className="flex justify-between items-end">
+                        <div className="space-y-2">
+                          <div className="h-8 w-48 bg-foreground/10 rounded-lg" />
+                          <div className="h-4 w-32 bg-muted/50 rounded-lg" />
+                        </div>
+                        <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                          <BarChart3 size={24} />
                         </div>
                       </div>
-
-                      {/* Llavia Copilot Banner */}
-                      <div className="rounded-xl border border-purple-100 bg-purple-50 dark:bg-purple-900/10 dark:border-purple-900/30 p-4 mb-6 shadow-sm">
-                        <div className="flex gap-4">
-                          <div className="h-10 w-10 shrink-0 rounded-lg bg-primary text-white flex items-center justify-center">
-                            <Star className="h-5 w-5 fill-current" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-primary mb-1">Llavia Copilot</h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed hidden md:block">
-                              Actualmente, varios inquilinos presentan deudas por un total de 2,600.00 BOB, correspondientes al mes de febrero. Te sugiero que revises la pestaña de facturación para tomar acción. ¡Sigamos avanzando juntos!
-                            </p>
-                            <div className="mt-2 text-sm font-medium text-primary flex items-center gap-1">
-                              Ir a Gestión de Facturas <ArrowRight className="h-3 w-3" />
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        {[
+                          { label: 'Ingresos Mensuales', val: '$12,450', color: 'bg-emerald-500/10 text-emerald-500' },
+                          { label: 'Ocupación', val: '98%', color: 'bg-blue-500/10 text-blue-500' },
+                          { label: 'Pendientes', val: '2', color: 'bg-rose-500/10 text-rose-500' }
+                        ].map((stat, i) => (
+                          <div key={i} className="p-6 rounded-3xl border bg-card/50 space-y-3 hover:bg-card transition-colors">
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{stat.label}</span>
+                            <div className="text-3xl font-black tracking-tight">{stat.val}</div>
+                            <div className={cn("inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold", stat.color)}>
+                              +12% vs last month
                             </div>
                           </div>
-                        </div>
+                        ))}
                       </div>
-
-                      {/* 4 Stat Cards Grid */}
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        {/* Margen */}
-                        <div className="rounded-xl border bg-white dark:bg-slate-950 p-4 shadow-sm relative overflow-hidden">
-                          <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                              <div className="h-5 w-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                                <TrendingUp className="h-3 w-3 text-emerald-600" />
-                              </div>
-                              <span className="hidden xl:inline">Margen (Mes)</span>
-                            </div>
-                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">100% MoM</span>
-                          </div>
-                          <div className="text-xl font-bold mt-2 truncate">Bs 900,00</div>
-                          <p className="text-[10px] text-muted-foreground mt-1 truncate">Ganancia Neta Calculada</p>
-                        </div>
-
-                        {/* Deuda Vencida */}
-                        <div className="rounded-xl border bg-white dark:bg-slate-950 p-4 shadow-sm relative overflow-hidden">
-                          <div className="absolute top-0 left-0 w-full h-1 bg-rose-500"></div>
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-rose-600">
-                              <div className="h-5 w-5 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
-                                <CheckCircle2 className="h-3 w-3 text-rose-600" />
-                              </div>
-                              <span className="hidden xl:inline">Deuda Vencida</span>
-                            </div>
-                          </div>
-                          <div className="text-xl font-bold mt-2 truncate">Bs 2.600,00</div>
-                          <p className="text-[10px] text-rose-500 mt-1 truncate">4 facturas en espera</p>
-                        </div>
-
-                        {/* Próx 7 dias */}
-                        <div className="rounded-xl border bg-white dark:bg-slate-950 p-4 shadow-sm relative overflow-hidden">
-                          <div className="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-blue-600">
-                              <div className="h-5 w-5 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                <Wallet className="h-3 w-3 text-blue-600" />
-                              </div>
-                              <span className="hidden xl:inline">Próx. 7 Días</span>
-                            </div>
-                          </div>
-                          <div className="text-xl font-bold mt-2 truncate">Bs 0,00</div>
-                          <p className="text-[10px] text-muted-foreground mt-1 truncate">Proyección de 0 cobros</p>
-                        </div>
-
-                        {/* Ocupación */}
-                        <div className="rounded-xl border bg-white dark:bg-slate-950 p-4 shadow-sm relative overflow-hidden">
-                          <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-indigo-600">
-                              <div className="h-5 w-5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                                <Building2 className="h-3 w-3 text-indigo-600" />
-                              </div>
-                              <span className="hidden xl:inline">Ocupación</span>
-                            </div>
-                          </div>
-                          <div className="text-xl font-bold mt-2 flex items-baseline gap-1 truncate">
-                            100% <span className="text-[10px] text-muted-foreground font-normal hidden xl:inline">(6/6) prop.</span>
-                          </div>
-                          <div className="w-full bg-muted rounded-full h-1.5 mt-2 hidden sm:block">
-                            <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: '100%' }}></div>
-                          </div>
-                        </div>
+                      
+                      {/* Fake Chart Area */}
+                      <div className="h-48 w-full bg-muted/10 rounded-3xl border relative overflow-hidden p-6 flex items-end gap-2 group-hover:bg-muted/20 transition-colors">
+                         {[40, 70, 45, 90, 65, 80, 50, 95, 60, 85].map((h, i) => (
+                            <motion.div 
+                              key={i}
+                              initial={{ height: 0 }}
+                              animate={{ height: `${h}%` }}
+                              transition={{ duration: 1, delay: 1 + (i * 0.1) }}
+                              className="flex-1 bg-gradient-to-t from-primary/40 to-primary/80 rounded-t-lg"
+                            />
+                         ))}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+              
+              {/* Floating Element 1 */}
+              <motion.div
+                animate={{ y: [0, -20, 0] }}
+                transition={{ duration: 5, repeat: Infinity }}
+                className="absolute -top-12 -right-12 hidden lg:flex glass-dark p-6 rounded-3xl border shadow-2xl items-center gap-4 z-20"
+              >
+                <div className="h-12 w-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white">
+                  <CheckCircle2 size={24} />
+                </div>
+                <div>
+                  <div className="text-white font-bold">Pago Recibido</div>
+                  <div className="text-slate-400 text-sm">Contrato #8829 - $1,200</div>
+                </div>
+              </motion.div>
+
+              {/* Floating Element 2 */}
+              <motion.div
+                animate={{ y: [0, 20, 0] }}
+                transition={{ duration: 6, repeat: Infinity }}
+                className="absolute -bottom-8 -left-12 hidden lg:flex glass-dark p-6 rounded-3xl border shadow-2xl items-center gap-4 z-20"
+              >
+                <div className="h-12 w-12 bg-primary rounded-2xl flex items-center justify-center text-white">
+                   <Users size={24} />
+                </div>
+                <div>
+                  <div className="text-white font-bold">Nuevo Inquilino</div>
+                  <div className="text-slate-400 text-sm">Validado satisfactoriamente</div>
+                </div>
+              </motion.div>
+            </motion.div>
           </div>
         </section>
 
-        {/* Social Proof / Trusted By */}
-        <section className="py-10 border-y bg-muted/30">
+        {/* Logos/Trust */}
+        <section className="py-20 bg-muted/20 border-y">
           <div className="container mx-auto px-4 text-center">
-            <p className="text-sm font-medium text-muted-foreground mb-6 uppercase tracking-wider">
-              Diseñado para propietarios y administradores independientes
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-12">
+              Transformando la gestión inmobiliaria para independientes
             </p>
-            <div className="flex flex-wrap justify-center gap-8 md:gap-16 opacity-50 grayscale">
-              {/* Placeholder logos */}
-              <div className="flex items-center gap-2 font-bold text-xl"><Building2 /> Inmobiliaria Sur</div>
-              <div className="flex items-center gap-2 font-bold text-xl"><ShieldCheck /> Gestión Segura</div>
-              <div className="flex items-center gap-2 font-bold text-xl"><LayoutDashboard /> RentAdmin Pro</div>
+            <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
+               {['RENTAL PRO', 'SECURE STAY', 'EASY LEASE', 'URBAN FLOW', 'NEXUS RE'].map(name => (
+                 <span key={name} className="text-2xl font-black tracking-tighter">{name}</span>
+               ))}
             </div>
           </div>
         </section>
 
-        {/* Features Grid */}
-        <section id="features" className="py-24 bg-background">
+        {/* Features Bento Grid */}
+        <section id="features" className="py-32 relative">
+          <div className="container mx-auto px-4 max-w-7xl">
+            <div className="text-center mb-24 space-y-4">
+              <h2 className="text-sm font-bold text-primary uppercase tracking-widest">Capacidades</h2>
+              <h3 className="text-4xl md:text-6xl font-black tracking-tight">Todo lo que necesitas <br />para dormir tranquilo</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FeatureCard
+                icon={Wallet}
+                title="Cobros Automáticos"
+                description="Genera facturas, envía recordatorios por WhatsApp y recibe notificaciones de pago al instante."
+                className="md:col-span-2 bg-gradient-to-br from-card/50 to-emerald-500/5 border-emerald-500/10"
+              />
+              <FeatureCard
+                icon={ShieldCheck}
+                title="Seguridad Total"
+                description="Tus datos y los de tus inquilinos protegidos con encriptación bancaria de grado militar."
+                className="bg-gradient-to-br from-card/50 to-primary/5 border-primary/10"
+              />
+              <FeatureCard
+                icon={Globe}
+                title="Multi-Moneda"
+                description="Administra propiedades en cualquier país con soporte para USD, EUR y monedas locales."
+                className="bg-gradient-to-br from-card/50 to-blue-500/5 border-blue-500/10"
+              />
+              <FeatureCard
+                icon={LayoutDashboard}
+                title="IA Copilot"
+                description="Nuestro asistente inteligente analiza tus finanzas y te sugiere mejoras para optimizar rentabilidad."
+                className="md:col-span-2 bg-gradient-to-br from-card/50 to-purple-500/5 border-purple-500/10"
+              />
+              <FeatureCard
+                icon={TrendingUp}
+                title="Reportes Avanzados"
+                description="Gráficos de barras, pasteles y exportaciones a Excel con un solo clic para tu contador."
+                delay={0.2}
+              />
+              <FeatureCard
+                icon={Lock}
+                title="Roles & Permisos"
+                description="Delega en administradores sin exponer tus balances bancarios o datos críticos."
+                delay={0.4}
+              />
+              <FeatureCard
+                icon={Building2}
+                title="Gestión de Unidades"
+                description="Desde una casa hasta edificios enteros con cientos de unidades. Escalabilidad garantizada."
+                delay={0.6}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing */}
+        <section id="pricing" className="py-32 bg-muted/30">
           <div className="container mx-auto px-4 max-w-6xl">
-            <div className="text-center mb-16 max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Todo lo que necesitas, en un solo lugar</h2>
-              <p className="text-lg text-muted-foreground">
-                Hemos simplificado las herramientas que usan las grandes agencias para que tú puedas gestionar tus propiedades con la misma eficiencia, por una fracción del costo.
+            <div className="text-center mb-20 space-y-6">
+              <h2 className="text-4xl md:text-6xl font-black tracking-tight">Precios que crecen contigo</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Sin cargos ocultos. Sin contratos a largo plazo. Cancela cuando quieras.
               </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <FeatureCard
-                icon={<Wallet className="text-emerald-500" />}
-                title="Control Financiero"
-                description="Visualiza ingresos, gastos y rentabilidad neta en tiempo real. Gráficos interactivos y balances automáticos."
-              />
-              <FeatureCard
-                icon={<Users className="text-blue-500" />}
-                title="Gestión de Inquilinos"
-                description="Perfiles detallados, historial de pagos y alertas de impago. Todo organizado y fácil de encontrar."
-              />
-              <FeatureCard
-                icon={<TrendingUp className="text-violet-500" />}
-                title="Soporta Múltiples Monedas"
-                description="¿Propiedades en diferentes países? Gestiona cobros en Euros, Dólares o tu moneda local sin problemas."
-              />
-              <FeatureCard
-                icon={<ShieldCheck className="text-amber-500" />}
-                title="Roles Accesibles"
-                description="Da acceso limitado a 'Encargados' para que registren gastos sin ver tus datos financieros confidenciales."
-              />
-              <FeatureCard
-                icon={<CheckCircle2 className="text-cyan-500" />}
-                title="Importación Rápida"
-                description="Sube tu Excel actual y migra todos tus datos (inquilinos, habitaciones) a Llavia en menos de 2 minutos."
-              />
-              <FeatureCard
-                icon={<LayoutDashboard className="text-rose-500" />}
-                title="Dashboard Intuitivo"
-                description="Un resumen visual de la salud de tu cartera en cuanto inicias sesión. Cero curva de aprendizaje."
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Pricing Section - Starter Focus */}
-        <section id="pricing" className="py-24 bg-slate-50 dark:bg-slate-900/50">
-          <div className="container mx-auto px-4 max-w-5xl">
-            <div className="text-center mb-16 max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 tracking-tight">Precios simples y transparentes</h2>
-              <p className="text-lg text-muted-foreground mb-8">
-                Comienza gratis y mejora tu plan a medida que crece tu portafolio. Cero comisiones ocultas.
-              </p>
-
-              {/* Billing Toggle */}
-              <div className="flex items-center justify-center gap-3">
-                <span className={`text-sm font-medium ${!isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>Mensual</span>
-                <button
-                  onClick={() => setIsAnnual(!isAnnual)}
-                  className="relative inline-flex h-6 w-11 items-center rounded-full bg-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              
+              <div className="inline-flex items-center p-1 bg-background rounded-full border shadow-sm">
+                <button 
+                  onClick={() => setIsAnnual(false)}
+                  className={cn("px-6 py-2 rounded-full text-sm font-bold transition-all", !isAnnual ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground")}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAnnual ? 'translate-x-6' : 'translate-x-1'}`} />
+                  Mensual
                 </button>
-                <span className={`text-sm font-medium ${isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  Anual <span className="text-emerald-500 text-xs font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full ml-1">-20%</span>
-                </span>
+                <button 
+                  onClick={() => setIsAnnual(true)}
+                  className={cn("px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2", isAnnual ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground")}
+                >
+                  Anual <Badge variant="success" className="h-5">-20%</Badge>
+                </button>
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {/* Starter Plan */}
-              <Card className="p-8 relative border-border/50 hover:border-primary/50 transition-colors flex flex-col">
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold text-foreground mb-2">Plan Starter</h3>
-                  <p className="text-muted-foreground text-sm">Perfecto para empezar a organizar tus primeros alquileres.</p>
+              <motion.div
+                whileHover={{ y: -10 }}
+                className="relative p-10 rounded-[2.5rem] border bg-card/50 glass hover:shadow-2xl transition-all duration-500 flex flex-col"
+              >
+                <div className="mb-8">
+                  <h4 className="text-2xl font-bold mb-2">Starter</h4>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-5xl font-black">${isAnnual ? '8' : '12'}</span>
+                    <span className="text-muted-foreground font-medium">/mes</span>
+                  </div>
+                  <p className="mt-4 text-muted-foreground">Ideal para gestionar tus primeras propiedades.</p>
                 </div>
-                <div className="mb-6 flex items-baseline text-5xl font-extrabold">
-                  ${isAnnual ? '9' : '15'}
-                  <span className="text-lg text-muted-foreground font-medium ml-2">/mes</span>
-                </div>
-                <ul className="mb-8 space-y-4 flex-1">
-                  <PricingFeature text="Hasta 5 propiedades/habitaciones" />
-                  <PricingFeature text="Gestión de inquilinos básica" />
-                  <PricingFeature text="Registro de ingresos y gastos" />
-                  <PricingFeature text="Soporte por email" />
-                </ul>
-                <Link href="/login" className="mt-auto">
-                  <Button variant="outline" className="w-full h-12 rounded-full font-semibold">Comenzar Gratis</Button>
-                </Link>
-              </Card>
 
-              {/* Pro Plan */}
-              <Card className="p-8 relative border-primary shadow-xl shadow-primary/10 flex flex-col">
-                <div className="absolute top-0 right-8 -translate-y-1/2">
-                  <span className="bg-gradient-to-r from-primary to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                    Recomendado
-                  </span>
+                <ul className="space-y-4 mb-10 flex-1">
+                  <PricingFeature text="Hasta 5 propiedades/unidades" />
+                  <PricingFeature text="WhatsApp reminders ilimitados" />
+                  <PricingFeature text="Reportes financieros básicos" />
+                  <PricingFeature text="Soporte por Email" />
+                </ul>
+
+                <Link href="/login">
+                  <Button size="lg" variant="outline" className="w-full rounded-2xl h-14 font-bold border-2 hover:bg-primary hover:text-white hover:border-primary transition-all">
+                    Elegir Starter
+                  </Button>
+                </Link>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ y: -10 }}
+                className="relative p-10 rounded-[2.5rem] border-2 border-primary bg-primary/[0.03] shadow-2xl flex flex-col overflow-hidden"
+              >
+                <div className="absolute top-6 right-6">
+                  <Badge className="bg-primary text-white border-none px-4 py-1 text-xs uppercase font-black">Popular</Badge>
                 </div>
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold text-foreground mb-2">Plan Pro</h3>
-                  <p className="text-muted-foreground text-sm">El software completo para propietarios en crecimiento.</p>
+                
+                <div className="mb-8">
+                  <h4 className="text-2xl font-bold mb-2">Pro Business</h4>
+                  <div className="flex items-baseline gap-1 text-primary">
+                    <span className="text-5xl font-black">${isAnnual ? '24' : '32'}</span>
+                    <span className="opacity-70 font-medium">/mes</span>
+                  </div>
+                  <p className="mt-4 text-muted-foreground">Potencia para administradores y gran escala.</p>
                 </div>
-                <div className="mb-6 flex items-baseline text-5xl font-extrabold">
-                  ${isAnnual ? '29' : '39'}
-                  <span className="text-lg text-muted-foreground font-medium ml-2">/mes</span>
-                </div>
-                <ul className="mb-8 space-y-4 flex-1">
-                  <PricingFeature text="Propiedades y habitaciones Ilimitadas" />
-                  <PricingFeature text="Roles de acceso (Encargados)" />
-                  <PricingFeature text="Reportes financieros avanzados" />
-                  <PricingFeature text="Importación/Exportación a Excel" />
+
+                <ul className="space-y-4 mb-10 flex-1">
+                  <PricingFeature text="Unidades Ilimitadas" />
+                  <PricingFeature text="Roles de Administrador" />
+                  <PricingFeature text="Exportación avanzada a Excel/PDF" />
+                  <PricingFeature text="IA Copilot Financial Advisor" />
                   <PricingFeature text="Soporte prioritario 24/7" />
                 </ul>
-                <Link href="/login" className="mt-auto">
-                  <Button className="w-full h-12 rounded-full font-semibold shadow-md">Prueba Gratuita (14 días)</Button>
+
+                <Link href="/login">
+                  <Button size="lg" className="w-full rounded-2xl h-14 font-bold shadow-xl shadow-primary/25 hover:scale-105 active:scale-95 transition-all">
+                    Comenzar Gratis (14 días)
+                  </Button>
                 </Link>
-              </Card>
+              </motion.div>
             </div>
           </div>
         </section>
 
         {/* Testimonials */}
-        <section id="testimonials" className="py-24 bg-background border-t">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight">Propietarios en control</h2>
-              <p className="text-lg text-muted-foreground">Únete a decenas de inversores que ya optimizaron su tiempo.</p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              <TestimonialCard
-                quote="Antes usaba 3 hojas de Excel distintas para seguir quién me había pagado. Con Llavia, veo los pendientes en segundos."
-                name="Carlos R."
-                role="Propietario de 12 pisos"
-              />
-              <TestimonialCard
-                quote="El sistema de roles es genial. Mi encargado puede subir los gastos de plomería sin que yo tenga que darle las llaves de mis finanzas."
-                name="María J."
-                role="Inversora Inmobiliaria"
-              />
-              <TestimonialCard
-                quote="La importación masiva me salvó. Pasé mis 40 habitaciones al sistema en una tarde. Altamente recomendado para coliving."
-                name="Andrés M."
-                role="Gestor de Coliving"
-              />
-            </div>
+        <section id="testimonials" className="py-32">
+          <div className="container mx-auto px-4 max-w-7xl text-center">
+             <h2 className="text-4xl md:text-6xl font-black tracking-tight mb-20">Voces de propietarios reales</h2>
+             
+             <div className="grid md:grid-cols-3 gap-8">
+                {[
+                  {
+                    name: 'Julian Velez',
+                    role: 'Dueño de 15 inmuebles',
+                    text: 'Llavia me permitió recuperar el control de mi tiempo. Los recordatorios de pago automáticos hicieron que mi morosidad bajara un 40%.'
+                  },
+                  {
+                    name: 'Claudia Ortiz',
+                    role: 'Inversora Real Estate',
+                    text: 'La facilidad para exportar todo a Excel me ahorra días de trabajo con mi contador cada mes. Es la herramienta que buscaba hace años.'
+                  },
+                  {
+                    name: 'Roberto Sanchez',
+                    role: 'Administrador de Colivings',
+                    text: 'Gestionar múltiples inquilinos en habitaciones separadas era un caos hasta que conocí Llavia. Sencillo, potente y siempre evoluciona.'
+                  }
+                ].map((testimonial, i) => (
+                  <motion.div
+                    key={i}
+                    whileHover={{ y: -5 }}
+                    className="p-8 rounded-[2rem] bg-muted/20 border border-muted text-left relative overflow-hidden"
+                  >
+                    <Quote className="absolute -top-4 -right-4 h-24 w-24 text-primary/5 -rotate-12" />
+                    <div className="flex gap-1 mb-6 text-amber-400">
+                      {[1,2,3,4,5].map(s => <Star key={s} size={16} fill="currentColor" />)}
+                    </div>
+                    <p className="text-lg font-medium leading-relaxed mb-8 relative z-10">"{testimonial.text}"</p>
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">
+                        {testimonial.name.slice(0,1)}
+                      </div>
+                      <div>
+                        <h5 className="font-bold">{testimonial.name}</h5>
+                        <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+             </div>
           </div>
         </section>
 
         {/* Final CTA */}
-        <section className="py-24 relative overflow-hidden">
-          <div className="absolute inset-0 bg-primary/5 -z-10" />
-          <div className="container mx-auto px-4 max-w-4xl text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">¿Listo para modernizar tu gestión?</h2>
-            <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-              Configura tu cuenta en minutos. Importa tus datos hoy y empieza a disfrutar de la paz mental que da tener todo bajo control.
+        <section className="py-40 relative overflow-hidden text-center bg-primary text-primary-foreground">
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="container mx-auto px-4 relative z-10"
+          >
+            <h2 className="text-5xl md:text-7xl font-black tracking-tight mb-8">
+              Tu tiempo vale más <br />que perseguir recibos
+            </h2>
+            <p className="text-xl md:text-2xl mb-12 opacity-80 max-w-2xl mx-auto font-medium">
+              Únete a la nueva era de la gestión inmobiliaria. Configura tu cuenta en 3 minutos.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Link href="/login">
-                <Button size="lg" className="px-10 h-14 text-lg rounded-full shadow-xl shadow-primary/20 hover:scale-105 transition-transform">
-                  Comienza tu prueba gratis
+                <Button size="lg" className="bg-white text-primary hover:bg-white/90 px-12 h-16 rounded-full text-xl font-bold shadow-2xl transition-all">
+                  Empezar Ahora Gratis
                 </Button>
               </Link>
+              <div className="flex items-center gap-2 text-sm font-bold">
+                 <MousePointer2 size={18} /> No requiere tarjeta de crédito
+              </div>
             </div>
-          </div>
+          </motion.div>
         </section>
       </main>
 
-      <footer className="border-t py-12 bg-card">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-sm">
-            <div className="md:col-span-1">
-              <div className="flex items-center gap-2 font-bold text-xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-                <Building2 className="text-primary h-6 w-6" />
-                <span>Llavia</span>
+      {/* Footer */}
+      <footer className="py-20 border-t bg-card text-card-foreground">
+        <div className="container mx-auto px-4 max-w-7xl">
+           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20 text-sm">
+             <div className="space-y-6">
+                <Link href="/" className="flex items-center gap-2 group">
+                  <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
+                    <Building2 size={18} />
+                  </div>
+                  <span className="font-black text-xl tracking-tighter">Llavia</span>
+                </Link>
+                <p className="text-muted-foreground leading-relaxed">
+                  Automatizando la rentabilidad para propietarios independientes en toda Latinoamérica y España.
+                </p>
+             </div>
+             <div>
+                <h6 className="font-bold text-foreground mb-6 uppercase tracking-widest text-xs">Producto</h6>
+                <ul className="space-y-4 text-muted-foreground">
+                   <li><Link href="#features" className="hover:text-primary transition-colors">Características</Link></li>
+                   <li><Link href="#pricing" className="hover:text-primary transition-colors">Precios</Link></li>
+                   <li><Link href="#" className="hover:text-primary transition-colors">Roadmap</Link></li>
+                   <li><Link href="#" className="hover:text-primary transition-colors">Seguridad</Link></li>
+                </ul>
+             </div>
+             <div>
+                <h6 className="font-bold text-foreground mb-6 uppercase tracking-widest text-xs">Recursos</h6>
+                <ul className="space-y-4 text-muted-foreground">
+                   <li><Link href="#" className="hover:text-primary transition-colors">Blog Inmobiliario</Link></li>
+                   <li><Link href="#" className="hover:text-primary transition-colors">Documentación</Link></li>
+                   <li><Link href="#" className="hover:text-primary transition-colors">Centro de Ayuda</Link></li>
+                   <li><Link href="#" className="hover:text-primary transition-colors">API para Desarrolladores</Link></li>
+                </ul>
+             </div>
+             <div>
+                <h6 className="font-bold text-foreground mb-6 uppercase tracking-widest text-xs">Compañía</h6>
+                <ul className="space-y-4 text-muted-foreground">
+                   <li><Link href="#" className="hover:text-primary transition-colors">Sobre Nosotros</Link></li>
+                   <li><Link href="#" className="hover:text-primary transition-colors">Privacidad</Link></li>
+                   <li><Link href="#" className="hover:text-primary transition-colors">Términos</Link></li>
+                   <li><Link href="#" className="hover:text-primary transition-colors">Contacto</Link></li>
+                </ul>
+             </div>
+           </div>
+           
+           <div className="pt-12 border-t flex flex-col md:flex-row justify-between items-center gap-6 text-muted-foreground">
+              <p>© {new Date().getFullYear()} Llavia Software S.L. Todos los derechos reservados.</p>
+              <div className="flex items-center gap-6">
+                <Link href="#" className="hover:text-primary transition-colors">Twitter</Link>
+                <Link href="#" className="hover:text-primary transition-colors">LinkedIn</Link>
+                <Link href="#" className="hover:text-primary transition-colors">Instagram</Link>
               </div>
-              <p className="text-muted-foreground">
-                El software diseñado para que los propietarios independientes recuperen el control de sus finanzas y su tiempo.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-foreground">Producto</h4>
-              <ul className="space-y-3 text-muted-foreground">
-                <li><Link href="#features" className="hover:text-primary transition-colors">Características</Link></li>
-                <li><Link href="#pricing" className="hover:text-primary transition-colors">Precios</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Seguridad</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-foreground">Recursos</h4>
-              <ul className="space-y-3 text-muted-foreground">
-                <li><Link href="#" className="hover:text-primary transition-colors">Guía de inicio</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Blog</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Centro de ayuda</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4 text-foreground">Legal</h4>
-              <ul className="space-y-3 text-muted-foreground">
-                <li><Link href="#" className="hover:text-primary transition-colors">Privacidad</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Términos</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Contacto</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} Llavia Software. Todos los derechos reservados.</p>
-            <div className="flex items-center gap-1">
-              Hecho con <span className="text-red-500">♥</span> para propietarios
-            </div>
-          </div>
+           </div>
         </div>
       </footer>
     </div>
-  );
-}
-
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
-  return (
-    <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-border/50 bg-card/50 backdrop-blur-sm group">
-      <div className="h-14 w-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-        {React.cloneElement(icon as React.ReactElement<{ size: number }>, { size: 28 })}
-      </div>
-      <h3 className="text-xl font-bold mb-3 text-foreground">{title}</h3>
-      <p className="text-muted-foreground leading-relaxed">
-        {description}
-      </p>
-    </Card>
-  );
-}
-
-function PricingFeature({ text }: { text: string }) {
-  return (
-    <li className="flex items-center gap-3 text-muted-foreground">
-      <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-        <Check className="h-3 w-3 text-primary font-bold" />
-      </div>
-      <span className="text-sm">{text}</span>
-    </li>
-  );
-}
-
-function TestimonialCard({ quote, name, role }: { quote: string, name: string, role: string }) {
-  return (
-    <Card className="p-8 border-border/50 bg-muted/20 relative">
-      <Quote className="absolute top-6 right-6 text-primary/10 h-12 w-12" />
-      <div className="flex gap-1 mb-6">
-        {[...Array(5)].map((_, i) => (
-          <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-        ))}
-      </div>
-      <p className="text-foreground font-medium text-lg leading-relaxed mb-6">&quot;{quote}&quot;</p>
-      <div>
-        <h4 className="font-bold text-foreground">{name}</h4>
-        <p className="text-sm text-muted-foreground">{role}</p>
-      </div>
-    </Card>
   );
 }
