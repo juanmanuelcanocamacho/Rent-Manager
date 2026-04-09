@@ -13,8 +13,9 @@ interface FinancialHeaderProps {
 
 export function FinancialHeader({ totalDebtCents, overdueCount, upToDateCount, upcomingCents }: FinancialHeaderProps) {
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-            <Card className="p-3 md:p-4 bg-white dark:bg-slate-900 border-l-4 border-l-rose-500 shadow-sm">
+        <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 overflow-x-auto snap-x snap-mandatory pb-2 scrollbar-hide w-full">
+            {/* Card 1 */}
+            <Card className="min-w-[85%] sm:min-w-0 shrink-0 snap-center p-3 md:p-4 bg-white dark:bg-slate-900 border-l-4 border-l-rose-500 shadow-sm">
                 <div className="flex justify-between items-start">
                     <div>
                         <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wider">Deuda Total</p>
@@ -26,7 +27,8 @@ export function FinancialHeader({ totalDebtCents, overdueCount, upToDateCount, u
                 </div>
             </Card>
 
-            <Card className="p-3 md:p-4 bg-white dark:bg-slate-900 border-l-4 border-l-rose-500 shadow-sm">
+            {/* Card 2 */}
+            <Card className="min-w-[85%] sm:min-w-0 shrink-0 snap-center p-3 md:p-4 bg-white dark:bg-slate-900 border-l-4 border-l-rose-500 shadow-sm">
                 <div className="flex justify-between items-start">
                     <div>
                         <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wider">Facturas Vencidas</p>
@@ -41,7 +43,8 @@ export function FinancialHeader({ totalDebtCents, overdueCount, upToDateCount, u
                 </div>
             </Card>
 
-            <Card className="p-3 md:p-4 bg-white dark:bg-slate-900 border-l-4 border-l-emerald-500 shadow-sm">
+            {/* Card 3 */}
+            <Card className="min-w-[85%] sm:min-w-0 shrink-0 snap-center p-3 md:p-4 bg-white dark:bg-slate-900 border-l-4 border-l-emerald-500 shadow-sm">
                 <div className="flex justify-between items-start">
                     <div>
                         <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wider">Inquilinos al Día</p>
@@ -53,7 +56,8 @@ export function FinancialHeader({ totalDebtCents, overdueCount, upToDateCount, u
                 </div>
             </Card>
 
-            <Card className="p-3 md:p-4 bg-white dark:bg-slate-900 border-l-4 border-l-blue-500 shadow-sm">
+            {/* Card 4 */}
+            <Card className="min-w-[85%] sm:min-w-0 shrink-0 snap-center p-3 md:p-4 bg-white dark:bg-slate-900 border-l-4 border-l-blue-500 shadow-sm">
                 <div className="flex justify-between items-start">
                     <div>
                         <p className="text-[10px] md:text-xs font-medium text-muted-foreground uppercase tracking-wider">Próximos 30 días</p>

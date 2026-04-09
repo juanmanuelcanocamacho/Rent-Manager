@@ -31,7 +31,7 @@ export function InvoiceItem({ invoice }: InvoiceItemProps) {
     };
 
     return (
-        <div className="flex flex-col md:flex-row items-center gap-4 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
             {/* 1. Info Principal */}
             <div className="flex-1 w-full md:w-auto">
                 <div className="flex items-center gap-3">
@@ -55,7 +55,7 @@ export function InvoiceItem({ invoice }: InvoiceItemProps) {
             </div>
 
             {/* 2. Acciones Contextuales */}
-            <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end mt-2 md:mt-0">
 
                 {/* Caso: En Revisión (Tiene comprobante) */}
                 {isProcessing && invoice.proof && (

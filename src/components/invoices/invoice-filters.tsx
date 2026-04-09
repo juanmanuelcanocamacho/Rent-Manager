@@ -39,7 +39,7 @@ export function InvoiceFilters({ tenants }: InvoiceFiltersProps) {
 
     return (
         <div className="static bg-background/95 backdrop-blur-sm border-b pb-4 pt-2 mb-6 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
-            <div className="flex-1 flex gap-4 overflow-x-auto pb-2 md:pb-0 items-center">
+            <div className="flex-1 flex gap-4 overflow-x-auto pb-2 md:pb-0 items-center scrollbar-hide">
                 {/* Search */}
                 <div className="relative flex-1 min-w-[200px]">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -52,7 +52,7 @@ export function InvoiceFilters({ tenants }: InvoiceFiltersProps) {
                 </div>
 
                 {/* Status Tabs */}
-                <div className="flex items-center gap-1 bg-muted p-1 rounded-lg shrink-0 overflow-x-auto">
+                <div className="flex items-center gap-1 bg-muted p-1 rounded-lg shrink-0 overflow-x-auto scrollbar-hide">
                     {['ALL', 'OVERDUE', 'UP_TO_DATE', 'UPCOMING'].map((s) => {
                         const labels: Record<string, string> = {
                             'ALL': 'Todas',
@@ -75,7 +75,7 @@ export function InvoiceFilters({ tenants }: InvoiceFiltersProps) {
             </div>
 
             {/* PDF Report Generator Trigger - Condensed */}
-            <div className="hidden md:block">
+            <div className="flex justify-end w-full md:w-auto mt-3 md:mt-0">
                 <ReportGenerator tenants={tenants} condensed />
             </div>
         </div>

@@ -18,7 +18,7 @@ export default async function LandlordLayout({
             <div className="flex-1 flex flex-col">
                 <MobileHeader userRole={role} user={{ email: user.email as string, role }} />
                 {/* <UserHeader user={{ email: user.email as string, role }} /> */}
-                <main className="flex-1 p-4 md:p-6 lg:p-8 bg-muted/20">
+                <main className="flex-1 p-2 md:p-6 lg:p-8 bg-muted/20">
                     <div className="mx-auto max-w-full md:max-w-6xl">
                         <BackButton />
                         {children}

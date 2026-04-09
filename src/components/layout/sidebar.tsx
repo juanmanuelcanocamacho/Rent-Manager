@@ -176,20 +176,6 @@ export function MobileHeader({ userRole, user }: { userRole?: Role; user?: { ema
                         );
                     })}
 
-                    <div className="border-t my-2 pt-2 pb-2">
-                        {user && (
-                            <div className="flex items-center gap-3 px-3 py-2">
-                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs border border-primary/20">
-                                    <Users size={16} />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-medium">{user.email}</span>
-                                    <span className="text-[10px] text-muted-foreground uppercase">{user.role}</span>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
                     {userRole === 'LANDLORD' && (
                         <Link
                             href="/team"
@@ -203,6 +189,20 @@ export function MobileHeader({ userRole, user }: { userRole?: Role; user?: { ema
                             Equipo
                         </Link>
                     )}
+
+                    <div className="border-t my-2 pt-2 pb-2">
+                        {user && (
+                            <div className="flex items-center gap-3 px-3 py-2">
+                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs border border-primary/20">
+                                    <Users size={16} />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">{user.email}</span>
+                                    <span className="text-[10px] text-muted-foreground uppercase">{user.role}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     <div className="border-t my-2 pt-2">
                         <form action={async () => {

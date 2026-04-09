@@ -14,20 +14,9 @@ interface TenantBillingCardProps {
 export function TenantBillingCard({ tenantName, invoices }: TenantBillingCardProps) {
     const [expanded, setExpanded] = useState(false);
 
-    // Helper to dynamically check if an invoice is overdue
-    const isOverdue = (i: any) => {
-        if (i.status === 'OVERDUE') return true;
-        if (i.status === 'PENDING') {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            return new Date(i.dueDate).getTime() < today.getTime();
-        }
-        return false;
-    };
-
     // Calculate States
-    const overdueInvoices = invoices.filter(i => isOverdue(i));
-    const pendingInvoices = invoices.filter(i => (i.status === 'PENDING' || i.status === 'PAYMENT_PROCESSING') && !isOverdue(i));
+    const overdueInvoices = invoices.filter(i => i.status === 'OVERDUE');
+    const pendingInvoices = invoices.filter(i => i.status === 'PENDING' || i.status === 'PAYMENT_PROCESSING');
     const paidInvoices = invoices.filter(i => i.status === 'PAID');
 
     // Sort logic: Overdue first, then Pending (asc date), then Paid (desc date)
@@ -77,9 +66,9 @@ export function TenantBillingCard({ tenantName, invoices }: TenantBillingCardPro
                     {/* Summary Info / Action */}
                     <div className="flex flex-col md:items-end gap-1 w-full md:w-auto">
                         {!hasDebt && nextInvoice && (
-                            <div className="text-right">
+                            <div className="text-left md:text-right mb-2 md:mb-0">
                                 <p className="text-xs text-muted-foreground">Próximo cobro</p>
-                                <p className="font-medium text-sm flex items-center gap-1.5 justify-end">
+                                <p className="font-medium text-sm flex items-center gap-1.5 justify-start md:justify-end mt-0.5">
                                     <Calendar size={14} className="text-blue-500" />
                                     {new Date(nextInvoice.dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                                     <span className="text-muted-foreground">•</span>

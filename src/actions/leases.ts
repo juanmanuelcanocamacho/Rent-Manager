@@ -119,6 +119,15 @@ export async function endLease(leaseId: string) {
             }
         });
 
+        // Eliminar las facturas futuras (Pendientes) generadas para este contrato
+        await tx.invoice.deleteMany({
+            where: {
+                leaseId: leaseId,
+                status: 'PENDING',
+                dueDate: { gt: getNowInMadrid() }
+            }
+        });
+
         if (lease.rooms.length > 0) {
             await tx.room.updateMany({
                 where: { id: { in: lease.rooms.map(r => r.id) } },
@@ -188,13 +197,26 @@ export async function updateLease(formData: FormData) {
     // Optional: Date validation
     const endDate = endDateStr ? toMadridDate(new Date(endDateStr)) : null;
 
-    await db.lease.update({
-        where: { id_landlordId: { id, landlordId } },
-        data: {
-            endDate,
-            rentAmountCents: Math.round(rentAmount * 100),
-            billingDay,
-            status,
+    await db.$transaction(async (tx) => {
+        await tx.lease.update({
+            where: { id_landlordId: { id, landlordId } },
+            data: {
+                endDate,
+                rentAmountCents: Math.round(rentAmount * 100),
+                billingDay,
+                status,
+            }
+        });
+
+        // Si se cambia manualmente el contrato a finalizado, borramos futuras facturas pendientes
+        if (status === 'ENDED') {
+            await tx.invoice.deleteMany({
+                where: {
+                    leaseId: id,
+                    status: 'PENDING',
+                    dueDate: { gt: getNowInMadrid() }
+                }
+            });
         }
     });
 
