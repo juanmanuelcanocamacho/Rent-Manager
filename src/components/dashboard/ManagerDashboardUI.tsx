@@ -80,7 +80,7 @@ export function ManagerDashboardUI({ data }: ManagerDashboardProps) {
                                                 <Phone size={14} /> Sin Telf.
                                             </Button>
                                         )}
-                                        <Button size="sm" variant="default" className="flex-1 gap-2 bg-rose-600 hover:bg-rose-700 text-white shadow-sm" asChild>
+                                        <Button size="sm" variant="secondary" className="flex-1 gap-2 bg-rose-600 hover:bg-rose-700 text-white shadow-sm" asChild>
                                             <Link href={`/manager/invoices?search=${encodeURIComponent(item.tenantName)}`}>
                                                 Gestionar
                                             </Link>

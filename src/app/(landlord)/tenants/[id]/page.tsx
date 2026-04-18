@@ -41,7 +41,7 @@ export default async function EditTenantPage(props: { params: Promise<{ id: stri
                     </div>
                     <div>
                         <label className="text-sm font-medium">Email (Login)</label>
-                        <Input name="email" type="email" defaultValue={tenant.user.email} required />
+                        <Input name="email" type="email" defaultValue={tenant.user.email ?? undefined} required />
                     </div>
                     <div>
                         <label className="text-sm font-medium">Nº Documento (Opcional)</label>
