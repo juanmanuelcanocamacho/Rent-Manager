@@ -28,8 +28,8 @@ export async function createManager(formData: FormData) {
     }
 
     if (usernameNorm) {
-        // Check for duplicate username
-        const existingUsername = await db.user.findFirst({
+        // Check for duplicate username (cast to bypass stale generated types in IDE)
+        const existingUsername = await (db.user as any).findFirst({
             where: { username: usernameNorm }
         });
         if (existingUsername) {
@@ -49,12 +49,12 @@ export async function createManager(formData: FormData) {
 
     const passwordHash = await hash(password, 10);
 
-    await db.user.create({
+    await (db.user as any).create({
         data: {
-            email: emailNorm,
-            username: usernameNorm,
-            name: nameNorm,
-            phone: phoneNorm,
+            email: emailNorm as any,
+            username: usernameNorm as any,
+            name: nameNorm as any,
+            phone: phoneNorm as any,
             passwordHash,
             role: Role.MANAGER,
             landlordId: landlordId,
