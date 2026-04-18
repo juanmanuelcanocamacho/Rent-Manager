@@ -138,7 +138,7 @@ export default function LandingPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative pt-6 md:pt-20 pb-20 md:pb-32 overflow-hidden">
+        <section className="relative pt-6 md:pt-12 pb-20 md:pb-32 overflow-hidden">
           <div className="container mx-auto px-4 max-w-7xl relative z-10 text-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
