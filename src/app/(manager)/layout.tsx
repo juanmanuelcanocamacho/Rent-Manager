@@ -18,9 +18,17 @@ export default async function ManagerLayout({
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-950">
-            <ManagerSidebar user={{ email: user.email as string }} />
+            <ManagerSidebar user={{ 
+                email: user.email,
+                name: (user as any).name,
+                username: (user as any).username
+            }} />
             <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-                <ManagerMobileHeader user={{ email: user.email as string }} />
+                <ManagerMobileHeader user={{ 
+                    email: user.email,
+                    name: (user as any).name,
+                    username: (user as any).username
+                }} />
                 <main className="flex-1 p-4 md:p-8 lg:p-12 w-full overflow-x-hidden">
                     <div className="mx-auto max-w-4xl w-full">
                         <BackButton />

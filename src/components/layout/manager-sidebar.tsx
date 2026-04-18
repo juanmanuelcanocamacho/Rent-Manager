@@ -29,12 +29,15 @@ const managerNavItems = [
 
 interface ManagerSidebarProps {
     user: {
-        email: string;
+        email?: string | null;
+        name?: string | null;
+        username?: string | null;
     };
 }
 
 export function ManagerSidebar({ user }: ManagerSidebarProps) {
     const pathname = usePathname();
+    const displayName = user.name || user.username || (user.email ? user.email.split('@')[0] : 'Encargado');
 
     return (
         <aside className="w-64 border-r bg-card h-screen sticky top-0 flex flex-col hidden md:flex">
@@ -77,8 +80,8 @@ export function ManagerSidebar({ user }: ManagerSidebarProps) {
                                 <Shield size={20} />
                             </div>
                             <div className="flex flex-col overflow-hidden max-w-[100px]">
-                                <span className="text-sm font-semibold truncate" title={user.email}>
-                                    {user.email.split('@')[0]}
+                                <span className="text-sm font-semibold truncate" title={user.email || user.username || 'Encargado'}>
+                                    {displayName}
                                 </span>
                                 <span className="text-[10px] uppercase font-bold text-muted-foreground">ENCARGADO</span>
                             </div>
@@ -100,9 +103,10 @@ export function ManagerSidebar({ user }: ManagerSidebarProps) {
     );
 }
 
-export function ManagerMobileHeader({ user }: { user: { email: string } }) {
+export function ManagerMobileHeader({ user }: { user: { email?: string | null, name?: string | null, username?: string | null } }) {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
+    const displayName = user.name || user.username || user.email || 'Encargado';
 
     return (
         <header className="md:hidden border-b bg-card sticky top-0 z-50">
@@ -146,7 +150,7 @@ export function ManagerMobileHeader({ user }: { user: { email: string } }) {
                                 <Shield size={20} />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-sm font-bold">{user.email}</span>
+                                <span className="text-sm font-bold truncate max-w-[200px]">{displayName}</span>
                                 <span className="text-[10px] text-muted-foreground font-bold">PERFIL ENCARGADO</span>
                             </div>
                         </div>

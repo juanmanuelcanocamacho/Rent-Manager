@@ -10,8 +10,10 @@ import Link from 'next/link';
 
 interface UserHeaderProps {
     user: {
-        email: string;
+        email?: string | null;
         role: Role;
+        name?: string | null;
+        username?: string | null;
     };
     showLogo?: boolean;
 }
@@ -22,6 +24,8 @@ export function UserHeader({ user, showLogo }: UserHeaderProps) {
             user.role === Role.MANAGER ? 'Encargado' : 'Inquilino';
 
     const dashboardHref = user.role === Role.LANDLORD ? '/dashboard' : user.role === Role.MANAGER ? '/manager/dashboard' : '/me';
+
+    const displayName = user.name || user.username || user.email || 'Usuario';
 
     return (
         <div className="bg-card border-b px-6 py-3 flex items-center justify-between shadow-sm sticky top-0 z-40">
@@ -39,7 +43,7 @@ export function UserHeader({ user, showLogo }: UserHeaderProps) {
             <div className="flex items-center gap-3 sm:gap-4">
                 <ThemeToggle />
                 <div className="flex flex-col items-end flex-1 min-w-0 mr-2">
-                    <span className="text-sm font-semibold text-foreground leading-none truncate max-w-[130px] sm:max-w-[250px]">{user.email}</span>
+                    <span className="text-sm font-semibold text-foreground leading-none truncate max-w-[130px] sm:max-w-[250px]">{displayName}</span>
                     <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-1 flex items-center gap-1">
                         <Shield size={10} className="text-primary shrink-0" />
                         <span className="truncate">{roleLabel}</span>

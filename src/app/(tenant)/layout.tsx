@@ -15,7 +15,12 @@ export default async function TenantLayout({
 
     return (
         <div className="min-h-screen bg-muted/20 text-foreground flex flex-col">
-            <UserHeader user={{ email: user.email as string, role: Role.TENANT }} showLogo={true} />
+            <UserHeader user={{ 
+                email: user.email, 
+                role: Role.TENANT,
+                name: (user as any).name,
+                username: (user as any).username 
+            }} showLogo={true} />
 
             <main className="flex-1 py-8 w-full overflow-x-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">

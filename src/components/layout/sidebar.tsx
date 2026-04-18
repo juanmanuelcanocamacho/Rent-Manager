@@ -36,13 +36,16 @@ interface SidebarProps {
     };
     userRole?: Role;
     user?: {
-        email: string;
+        email?: string | null;
         role: Role;
+        name?: string | null;
+        username?: string | null;
     };
 }
 
 export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
     const pathname = usePathname();
+    const displayName = user?.name || user?.username || user?.email || 'Usuario';
 
     return (
         <aside className="w-64 border-r bg-card h-screen sticky top-0 flex flex-col hidden md:flex">
@@ -110,8 +113,8 @@ export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
                                     <Users size={20} />
                                 </div>
                                 <div className="flex flex-col overflow-hidden max-w-[100px]">
-                                    <span className="text-sm font-semibold truncate" title={user.email}>
-                                        {user.email}
+                                    <span className="text-sm font-semibold truncate" title={displayName}>
+                                        {displayName}
                                     </span>
                                     <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">
                                         <Shield size={10} />
@@ -140,9 +143,18 @@ export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
-export function MobileHeader({ userRole, user }: { userRole?: Role; user?: { email: string; role: Role } }) {
+export function MobileHeader({ userRole, user }: { 
+    userRole?: Role; 
+    user?: { 
+        email?: string | null; 
+        role: Role;
+        name?: string | null;
+        username?: string | null;
+    } 
+}) {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
+    const displayName = user?.name || user?.username || user?.email || 'Usuario';
 
     return (
         <header className="md:hidden border-b bg-card sticky top-0 z-50">
@@ -199,7 +211,7 @@ export function MobileHeader({ userRole, user }: { userRole?: Role; user?: { ema
                                     <Users size={16} />
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-medium">{user.email}</span>
+                                    <span className="text-sm font-medium">{displayName}</span>
                                     <span className="text-[10px] text-muted-foreground uppercase">{user.role}</span>
                                 </div>
                             </div>
