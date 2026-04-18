@@ -8,7 +8,7 @@ import { ChevronDown, ChevronUp, CheckCircle, FileDown } from 'lucide-react';
 import { markInvoicePaid, unmarkInvoicePaid } from '@/actions/invoices';
 import { approvePayment, rejectPayment } from '@/actions/payments';
 import { Check, X, MessageSquare, AlertTriangle } from 'lucide-react';
-import { generateInvoiceReceipt } from '@/lib/pdf/invoice-receipt';
+import { generateInvoiceReceipt, getInvoiceReceiptFile } from '@/lib/pdf/invoice-receipt';
 
 interface Invoice {
     id: string;
@@ -35,6 +35,51 @@ interface TenantInvoiceAccordionProps {
 
 export function TenantInvoiceAccordion({ tenantName, invoices }: TenantInvoiceAccordionProps) {
     const [isOpen, setIsOpen] = useState(false);
+
+    const [sharing, setSharing] = useState(false);
+
+    const handleShare = async (e: React.MouseEvent, invoice: any) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (sharing) return;
+        setSharing(true);
+
+        const data = {
+            id: invoice.id,
+            amountCents: invoice.amountCents,
+            dueDate: invoice.dueDate,
+            paidAt: invoice.paidAt,
+            tenantName: invoice.lease.tenant.fullName,
+            rooms: invoice.lease.rooms.map((r: any) => r.name)
+        };
+
+        try {
+            const file = getInvoiceReceiptFile(data);
+            const tenantPart = data.tenantName.split(' ')[0];
+            const shareData = {
+                files: [file],
+                title: `Recibo de Pago - ${tenantPart}`,
+                text: `Hola ${tenantPart}, aquí tienes tu recibo de pago de Llavia.`,
+            };
+
+            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                const phone = invoice.lease.tenant.phoneE164?.replace('+', '') || '';
+                const text = `Hola ${tenantPart}, acabo de generar tu recibo. Te lo envío por aquí (recuerda adjuntar el archivo descargado).`;
+                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+                generateInvoiceReceipt(data);
+            }
+        } catch (err: any) {
+            // Silence standard AbortError when user cancels sharing
+            if (err.name !== 'AbortError') {
+                console.error('Error sharing:', err);
+            }
+        } finally {
+            setSharing(false);
+        }
+    };
 
     const pendingCount = invoices.filter(inv => inv.status !== 'PAID').length;
 
@@ -175,21 +220,34 @@ export function TenantInvoiceAccordion({ tenantName, invoices }: TenantInvoiceAc
                                 </div>
                             ) : (
                                 <div className="flex gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => generateInvoiceReceipt({
-                                            id: invoice.id,
-                                            amountCents: invoice.amountCents,
-                                            dueDate: invoice.dueDate,
-                                            paidAt: invoice.paidAt,
-                                            tenantName: invoice.lease.tenant.fullName,
-                                            rooms: invoice.lease.rooms.map(r => r.name)
-                                        })}
-                                        className="gap-2 border-primary/20 text-primary hover:bg-primary/5"
-                                    >
-                                        <FileDown size={16} /> Recibo
-                                    </Button>
+                                    <div className="flex gap-2 items-center">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => generateInvoiceReceipt({
+                                                id: invoice.id,
+                                                amountCents: invoice.amountCents,
+                                                dueDate: invoice.dueDate,
+                                                paidAt: invoice.paidAt,
+                                                tenantName: invoice.lease.tenant.fullName,
+                                                rooms: invoice.lease.rooms.map(r => r.name)
+                                            })}
+                                            className="gap-2 border-primary/20 text-primary hover:bg-primary/5 h-8 px-3"
+                                        >
+                                            <FileDown size={14} /> PDF
+                                        </Button>
+
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={(e) => handleShare(e, invoice)}
+                                            disabled={sharing}
+                                            className="gap-2 border-emerald-200 text-emerald-600 hover:bg-emerald-50 h-8 px-3"
+                                            title="Compartir por WhatsApp"
+                                        >
+                                            <MessageSquare size={14} /> {sharing ? 'Enviando...' : 'WhatsApp'}
+                                        </Button>
+                                    </div>
                                     <ConfirmDialog
                                         trigger={
                                             <Button

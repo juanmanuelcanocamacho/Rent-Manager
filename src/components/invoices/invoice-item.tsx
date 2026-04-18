@@ -6,19 +6,64 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { markInvoicePaid, unmarkInvoicePaid } from '@/actions/invoices';
 import { approvePayment, rejectPayment } from '@/actions/payments';
 import { requestPaymentApproval } from '@/actions/invoices';
-import { generateInvoiceReceipt } from '@/lib/pdf/invoice-receipt';
-import { Check, X, MessageSquare, AlertTriangle, CheckCircle, FileDown, RotateCcw, Send } from 'lucide-react';
+import { generateInvoiceReceipt, getInvoiceReceiptFile } from '@/lib/pdf/invoice-receipt';
+import { Check, X, MessageSquare, AlertTriangle, CheckCircle, FileDown, RotateCcw, Send, Share2 } from 'lucide-react';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 interface InvoiceItemProps {
-    invoice: any; // Using any for now to avoid complex type duplication, ideally should use Prisma type
+    invoice: any; 
 }
 
 export function InvoiceItem({ invoice }: InvoiceItemProps) {
     const [loading, setLoading] = useState(false);
+    const [sharing, setSharing] = useState(false);
     const pathname = usePathname();
     const isManagerView = pathname?.startsWith('/manager');
+
+    const handleShare = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (sharing) return;
+        setSharing(true);
+
+        const data = {
+            id: invoice.id,
+            amountCents: invoice.amountCents,
+            dueDate: invoice.dueDate,
+            paidAt: invoice.paidAt,
+            tenantName: invoice.lease.tenant.fullName,
+            rooms: invoice.lease.rooms.map((r: any) => r.name)
+        };
+
+        try {
+            const file = getInvoiceReceiptFile(data);
+            const tenantName = data.tenantName.split(' ')[0];
+            const shareData = {
+                files: [file],
+                title: `Recibo de Pago - ${tenantName}`,
+                text: `Hola ${tenantName}, aquí tienes tu recibo de pago de Llavia.`,
+            };
+
+            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback for Desktop: Open WhatsApp and tell user to attach
+                const phone = invoice.lease.tenant.phoneE164?.replace('+', '') || '';
+                const text = `Hola ${tenantName}, acabo de generar tu recibo. Te lo envío por aquí (recuerda adjuntar el archivo descargado).`;
+                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+                generateInvoiceReceipt(data); // Also trigger download as fallback
+            }
+        } catch (err: any) {
+            // Ignore AbortError (user cancelled)
+            if (err.name !== 'AbortError') {
+                console.error('Error sharing:', err);
+            }
+        } finally {
+            setSharing(false);
+        }
+    };
 
     const isPaid = invoice.status === 'PAID';
     const isOverdue = invoice.status === 'OVERDUE';
@@ -158,7 +203,18 @@ export function InvoiceItem({ invoice }: InvoiceItemProps) {
                                 rooms: invoice.lease.rooms.map((r: any) => r.name)
                             })}
                         >
-                            <FileDown size={14} className="mr-1.5" /> Recibo
+                            <FileDown size={14} className="mr-1.5" /> PDF
+                        </Button>
+
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 text-emerald-600 hover:bg-emerald-50"
+                            onClick={handleShare}
+                            disabled={sharing}
+                            title="Compartir por WhatsApp"
+                        >
+                            <MessageSquare size={14} className="mr-1.5" /> {sharing ? 'Enviando...' : 'WhatsApp'}
                         </Button>
 
                         <ConfirmDialog

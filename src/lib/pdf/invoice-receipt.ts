@@ -12,6 +12,17 @@ interface InvoiceData {
 }
 
 export function generateInvoiceReceipt(data: InvoiceData) {
+    const doc = generateInvoicePdfDoc(data);
+    doc.save(`recibo_${data.tenantName.replace(/\s+/g, '_').toLowerCase()}_${data.id.substring(0, 8)}.pdf`);
+}
+
+export function getInvoiceReceiptFile(data: InvoiceData): File {
+    const doc = generateInvoicePdfDoc(data);
+    const blob = doc.output('blob');
+    return new File([blob], `recibo_${data.id.substring(0, 8)}.pdf`, { type: 'application/pdf' });
+}
+
+function generateInvoicePdfDoc(data: InvoiceData) {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -196,6 +207,6 @@ export function generateInvoiceReceipt(data: InvoiceData) {
     doc.setFont('helvetica', 'bold');
     doc.text('llavia.com', pageWidth - 20, footerY + 2, { align: 'right' });
 
-    // Save
-    doc.save(`recibo_${data.tenantName.replace(/\s+/g, '_').toLowerCase()}_${data.id.substring(0, 8)}.pdf`);
+    // Return doc
+    return doc;
 }
