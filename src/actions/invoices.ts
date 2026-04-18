@@ -1,11 +1,12 @@
 'use server'
 
 import { db } from '@/lib/db';
-import { requireLandlord, getLandlordContext } from '@/lib/rbac';
+import { requireLandlord, requireManagementAccess, getLandlordContext } from '@/lib/rbac';
 import { getNowInMadrid } from '@/lib/dates';
 import { revalidatePath } from 'next/cache';
 
 export async function markInvoicePaid(invoiceId: string, paymentMethod: 'CASH' | 'BIZUM' | 'BANK' | 'OTHER' = 'BANK') {
+    await requireLandlord();
     const landlordId = await getLandlordContext();
 
     const invoice = await db.invoice.findFirst({
@@ -77,4 +78,40 @@ export async function unmarkInvoicePaid(invoiceId: string) {
     });
 
     revalidatePath('/invoices');
+}
+
+export async function requestPaymentApproval(invoiceId: string) {
+    const landlordId = await getLandlordContext(); 
+
+    const invoice = await db.invoice.findFirst({
+        where: {
+            id: invoiceId,
+            lease: { landlordId: landlordId }
+        }
+    });
+
+    if (!invoice) throw new Error("Invoice not found or unauthorized");
+    if (invoice.status === 'PAID') throw new Error("This invoice is already paid.");
+
+    await db.$transaction(async (tx) => {
+        // Create a 'Proof' record so the Landlord sees it in the verification queue
+        await tx.paymentProof.create({
+            data: {
+                invoiceId: invoiceId,
+                method: 'CASH', // Default for physical collection
+                notes: 'Cobro informado por el encargado.',
+            }
+        });
+
+        // Update Invoice Status
+        await tx.invoice.update({
+            where: { id: invoiceId },
+            data: {
+                status: 'PAYMENT_PROCESSING',
+            }
+        });
+    });
+
+    revalidatePath('/invoices');
+    revalidatePath('/manager/dashboard');
 }

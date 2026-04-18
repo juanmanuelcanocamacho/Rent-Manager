@@ -77,7 +77,7 @@ export function TenantInvoiceAccordion({ tenantName, invoices }: TenantInvoiceAc
                                             // "Mes cumplido" -> Payment is for the previous month.
                                             // Start date is 1 month before due date.
                                             d.setMonth(d.getMonth() - 1);
-                                            return d.toLocaleDateString();
+                                            return d.toLocaleDateString('es-ES');
                                         })()}
                                     </span>
                                     <span>•</span>

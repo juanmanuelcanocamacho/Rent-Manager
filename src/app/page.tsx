@@ -113,8 +113,15 @@ export default function LandingPage() {
             <NavItem href="#testimonials">Testimonios</NavItem>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
+            {/* Mobile Button: Hidden on SM and larger */}
+            <Link href="/login" className="sm:hidden block ml-1">
+              <Button size="sm" className="rounded-full shadow-lg font-bold">
+                Entrar
+              </Button>
+            </Link>
+            {/* Desktop/Tablet Buttons: Hidden on mobile */}
             <div className="hidden sm:flex items-center gap-3">
               <Link href="/login">
                 <Button variant="ghost" className="font-semibold">Log in</Button>
@@ -131,16 +138,16 @@ export default function LandingPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative pt-20 pb-32 overflow-hidden">
+        <section className="relative pt-6 md:pt-20 pb-20 md:pb-32 overflow-hidden">
           <div className="container mx-auto px-4 max-w-7xl relative z-10 text-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border-primary/20 text-primary text-sm font-semibold mb-8 shadow-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border-primary/20 text-primary text-xs sm:text-sm font-semibold mb-6 sm:mb-8 shadow-sm"
             >
               <Badge variant="success" className="animate-pulse">Nuevo</Badge>
-              <span>Importación inteligente desde Excel disponible</span>
+              <span>Login con @usuario, gestión de encargados y navegación v2.0</span>
               <ArrowRight size={14} />
             </motion.div>
 
@@ -148,10 +155,10 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="text-6xl md:text-8xl font-black tracking-tight mb-8 leading-[0.9] lg:leading-[0.85]"
+              className="text-[3.25rem] sm:text-6xl md:text-8xl font-black tracking-tighter sm:tracking-tight mb-8 leading-[0.95] sm:leading-[0.9] lg:leading-[0.85] hyphens-auto"
             >
               Gestiona tus rentas <br />
-              <span className="text-primary italic relative">
+              <span className="text-primary italic relative inline-block max-w-full">
                 sin complicaciones
                 <svg className="absolute -bottom-2 left-0 w-full h-3 text-primary/30" viewBox="0 0 100 10" preserveAspectRatio="none">
                   <path d="M0 5 Q 25 0, 50 5 T 100 5" fill="none" stroke="currentColor" strokeWidth="4" />
@@ -187,7 +194,7 @@ export default function LandingPage() {
                   </div>
                 ))}
                 <div className="pl-6 text-sm font-semibold text-muted-foreground">
-                  +500 propietarios confían en nosotros
+                  +100 propietarios confían en nosotros
                 </div>
               </div>
             </motion.div>

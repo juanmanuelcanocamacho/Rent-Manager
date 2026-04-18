@@ -1,13 +1,13 @@
 import { updateLease } from '@/actions/leases';
 import { db } from '@/lib/db';
-import { requireLandlord, getLandlordContext } from '@/lib/rbac';
+import { requireManagementAccess, getLandlordContext } from '@/lib/rbac';
 import { Button, Card, Input } from '@/components/ui/shared';
 import { formatMoney } from '@/lib/money';
 import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 
 export default async function EditLeasePage({ params }: { params: Promise<{ id: string }> }) {
-    await requireLandlord();
+    await requireManagementAccess();
     const landlordId = await getLandlordContext();
     const { id } = await params;
 

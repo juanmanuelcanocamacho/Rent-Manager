@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
-import { landlordRoutes, tenantRoutesPrefix } from "@/config/routes";
+import { landlordRoutes, tenantRoutesPrefix, managerRoutesPrefix } from "@/config/routes";
 
 export default auth((req) => {
     const { nextUrl } = req;
@@ -12,15 +12,14 @@ export default auth((req) => {
 
     if (isMeRoute) {
         if (!isLoggedIn) {
-            console.log('[Middleware] /me requires login, redirecting to /login');
             return NextResponse.redirect(new URL('/login', nextUrl));
         }
         if (userRole === 'LANDLORD') {
-            console.log('[Middleware] LANDLORD accessing /me, redirecting to /dashboard');
             return NextResponse.redirect(new URL('/dashboard', nextUrl));
         }
-        // TENANT users are allowed to access /me
-        console.log('[Middleware] TENANT accessing /me, allowing access');
+        if (userRole === 'MANAGER') {
+            return NextResponse.redirect(new URL('/manager/dashboard', nextUrl));
+        }
         return NextResponse.next();
     }
 
@@ -34,21 +33,28 @@ export default auth((req) => {
 
     if (isLandlordRoute) {
         if (!isLoggedIn) {
-            console.log('[Middleware] Redirecting to /login (not logged in)');
             return NextResponse.redirect(new URL('/login', nextUrl));
         }
+        if (userRole === 'MANAGER') {
+            return NextResponse.redirect(new URL('/manager/dashboard', nextUrl));
+        }
         if (userRole !== 'LANDLORD') {
-            console.log('[Middleware] Redirecting to /me (not landlord)');
             return NextResponse.redirect(new URL('/me', nextUrl));
         }
     }
 
+    const isManagerRoute = nextUrl.pathname.startsWith(managerRoutesPrefix);
+    if (isManagerRoute) {
+        if (!isLoggedIn) return NextResponse.redirect(new URL('/login', nextUrl));
+        if (userRole === 'LANDLORD') return NextResponse.redirect(new URL('/dashboard', nextUrl));
+        if (userRole !== 'MANAGER') return NextResponse.redirect(new URL('/me', nextUrl));
+    }
+
     if (isTenantRoute) {
         if (!isLoggedIn) return NextResponse.redirect(new URL('/login', nextUrl));
-        if (userRole !== 'TENANT') {
-            console.log('[Middleware] Redirecting to /dashboard (not tenant)');
-            return NextResponse.redirect(new URL('/dashboard', nextUrl));
-        }
+        if (userRole === 'LANDLORD') return NextResponse.redirect(new URL('/dashboard', nextUrl));
+        if (userRole === 'MANAGER') return NextResponse.redirect(new URL('/manager/dashboard', nextUrl));
+        if (userRole !== 'TENANT') return NextResponse.next();
     }
 
     return NextResponse.next();

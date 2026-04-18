@@ -202,10 +202,6 @@ export async function getDashboardData() {
         isLandlord
     };
 }
-
-import { generateText } from 'ai';
-import { openai } from '@ai-sdk/openai';
-
 export async function generateCopilotSummary() {
     const user = await requireManagementAccess();
     if (user.role !== Role.LANDLORD) {
@@ -217,7 +213,6 @@ export async function generateCopilotSummary() {
     const currency = country === 'SPAIN' ? 'EUR' : 'BOB';
 
     try {
-        // 1. Fetch Tenant Debt Data
         const allTenants = await db.tenantProfile.findMany({
             where: { landlordId },
             include: {
@@ -232,58 +227,36 @@ export async function generateCopilotSummary() {
             }
         });
 
-        // 2. Build the factual context string
-        let contextText = `Datos actuales de inquilinos y sus deudas:\n\n`;
         let hasDebts = false;
         let totalDebtCents = 0;
+        let debtorsCount = 0;
 
         for (const tenant of allTenants) {
             let tenantDebtCents = 0;
-            const overdueMonths: string[] = [];
 
             for (const lease of tenant.leases) {
                 for (const invoice of lease.invoices) {
                     if (invoice.status === 'OVERDUE') {
                         tenantDebtCents += invoice.amountCents;
-                        overdueMonths.push(invoice.dueDate.toLocaleDateString('es-ES', { month: 'long' }));
                         hasDebts = true;
                     }
                 }
             }
 
             totalDebtCents += tenantDebtCents;
-
             if (tenantDebtCents > 0) {
-                contextText += `- ${tenant.fullName}: Debe ${(tenantDebtCents / 100).toFixed(2)} ${currency} correspondientes a los meses de ${overdueMonths.join(', ')}.\n`;
+                debtorsCount++;
             }
         }
 
         if (!hasDebts) {
-            contextText += "No hay ningún inquilino con facturas vencidas. Todos están al día.\n";
+            return "¡Felicidades! Todos tus inquilinos están al día con sus facturas. Puedes estar tranquilo y mantener el buen seguimiento.";
         } else {
-            contextText += `\nDeuda total acumulada: ${(totalDebtCents / 100).toFixed(2)} ${currency}.\n`;
+            return `Atención: Tienes ${debtorsCount} inquilino(s) con deudas activas. La suma total de facturas vencidas es de ${(totalDebtCents / 100).toFixed(2)} ${currency}. Te sugerimos tomar acción rápida enviando recordatorios en la pestaña de facturación.`;
         }
 
-        // 3. Request AI Summary
-        const systemPrompt = `Eres Llavia Copilot, el asistente inteligente financiero de un administrador de propiedades (Propietario).
-        Tu objetivo es leer un resumen crudo de datos de inquilinos y escribir un párrafo ejecutivo, directo, y muy amable (empático pero profesional) para que el propietario lo lea en su Dashboard.
-        
-        Reglas estrictas:
-        - Si no hay deudas, felicita al propietario brevemente ('¡Felicidades! Todos tus inquilinos están al día.').
-        - Si hay deudas, resume quién debe y cuánto deben sin hacer una lista aburrida. Agrupa si es posible. Termina sugiriendo tomar acción en la pestaña de facturación.
-        - Sé MUY conciso. Máximo 2-3 frases (aprox 40-50 palabras). El widget es pequeño.
-        - Usa un tono alentador y profesional. Nunca regañes al propietario.`;
-
-        const { text } = await generateText({
-            model: openai('gpt-4o-mini'),
-            system: systemPrompt,
-            prompt: contextText,
-        });
-
-        return text;
-
     } catch (error) {
-        console.error("AI Generation Error: ", error);
-        return "Llavia Copilot no está disponible en este momento. Por favor, verifica la configuración de tu OpenAI API Key.";
+        console.error("Generation Error: ", error);
+        return "Copilot no está disponible en este momento. Inténtalo más tarde.";
     }
 }

@@ -12,10 +12,33 @@ export async function createManager(formData: FormData) {
     const landlordId = await getLandlordContext();
 
     const email = formData.get('email') as string;
+    const username = (formData.get('username') as string)?.toLowerCase().trim();
+    const name = formData.get('name') as string;
+    const phone = formData.get('phone') as string;
     const password = formData.get('password') as string;
 
-    if (!email || !password) {
-        throw new Error('Faltan campos obligatorios');
+    if (!password || (!email && !username)) {
+        throw new Error('Debes proporcionar al menos un Email o un Usuario, y una Contraseña');
+    }
+
+    if (username) {
+        // Check for duplicate username
+        const existingUsername = await db.user.findFirst({
+            where: { username }
+        });
+        if (existingUsername) {
+            throw new Error('El nombre de usuario ya está en uso');
+        }
+    }
+
+    if (email) {
+        // Check for duplicate email
+        const existingEmail = await db.user.findUnique({
+            where: { email }
+        });
+        if (existingEmail) {
+            throw new Error('El email ya está en uso');
+        }
     }
 
     const passwordHash = await hash(password, 10);
@@ -23,6 +46,9 @@ export async function createManager(formData: FormData) {
     await db.user.create({
         data: {
             email,
+            username,
+            name,
+            phone,
             passwordHash,
             role: Role.MANAGER,
             landlordId: landlordId,
@@ -33,22 +59,24 @@ export async function createManager(formData: FormData) {
 }
 
 export async function deleteManager(id: string) {
-    const landlordId = await getLandlordContext();
+    try {
+        const landlordId = await getLandlordContext();
 
-    // Prevent deleting self (though requireLandlord checks current user)
-    // Prevent deleting other landlords?
-    // Just simple delete for now.
+        const user = await db.user.findFirst({
+            where: { id, landlordId: landlordId }
+        });
+        if (!user || user.role !== Role.MANAGER) {
+            throw new Error("No tienes permisos para eliminar este usuario o no es un encargado.");
+        }
 
-    const user = await db.user.findFirst({
-        where: { id, landlordId: landlordId }
-    });
-    if (!user || user.role !== Role.MANAGER) {
-        throw new Error("Solo se pueden borrar encargados");
+        await db.user.delete({
+            where: { id }
+        });
+
+        revalidatePath('/team');
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting manager:", error);
+        return { error: error instanceof Error ? error.message : "Ocurrió un error al eliminar el encargado." };
     }
-
-    await db.user.delete({
-        where: { id }
-    });
-
-    revalidatePath('/team');
 }

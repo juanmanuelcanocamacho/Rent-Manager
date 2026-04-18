@@ -33,25 +33,32 @@ export async function createRoom(formData: FormData) {
 }
 
 export async function deleteRoom(id: string) {
-    const landlordId = await getLandlordContext();
+    try {
+        const landlordId = await getLandlordContext();
 
-    const room = await db.room.findUnique({
-        where: { id_landlordId: { id, landlordId } },
-        include: { leases: true }
-    });
+        const room = await db.room.findUnique({
+            where: { id_landlordId: { id, landlordId } },
+            include: { leases: true }
+        });
 
-    if (!room) {
-        throw new Error("Room not found or you don't have permission.");
+        if (!room) {
+            return { error: "La propiedad no fue encontrada o no tienes permisos para acceder." };
+        }
+
+        if (room.leases.length > 0) {
+            return { error: "No se puede eliminar esta propiedad porque tiene contratos (activos o pasados) asociados. Debes mantener el historial de contratos." };
+        }
+
+        await db.room.delete({
+            where: { id_landlordId: { id, landlordId } }
+        });
+        
+        revalidatePath('/rooms');
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting room:", error);
+        return { error: "Ocurrió un error inesperado al intentar eliminar la propiedad." };
     }
-
-    if (room.leases.length > 0) {
-        throw new Error("Cannot delete room with history/leases.");
-    }
-
-    await db.room.delete({
-        where: { id_landlordId: { id, landlordId } }
-    });
-    revalidatePath('/rooms');
 }
 
 export async function bulkCreateRooms(roomsData: any[]) {

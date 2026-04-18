@@ -80,7 +80,7 @@ export default async function TenantsPage() {
                                             description={`¿Estás seguro de eliminar a ${tenant.fullName}? Se borrarán contratos y facturas asociados.`}
                                             onConfirm={async () => {
                                                 'use server';
-                                                await deleteTenant(tenant.id);
+                                                return await deleteTenant(tenant.id);
                                             }}
                                         />
                                     </div>

@@ -12,10 +12,9 @@ export default async function RoomsPage() {
     const isLandlord = user.role === Role.LANDLORD;
     const landlordId = await getLandlordContext();
 
-    const rawRooms = await db.room.findMany({
+    const rooms = (await db.room.findMany({
         where: { landlordId: landlordId }
-    });
-    const rooms = rawRooms.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+    })).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 
     return (
         <div className="space-y-8">
@@ -56,7 +55,7 @@ export default async function RoomsPage() {
                                     description={`¿Estás seguro de eliminar ${room.name}?`}
                                     onConfirm={async () => {
                                         'use server';
-                                        await deleteRoom(room.id);
+                                        return await deleteRoom(room.id);
                                     }}
                                 />
                             )}

@@ -5,9 +5,11 @@ import { Badge, Button } from '@/components/ui/shared';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { markInvoicePaid, unmarkInvoicePaid } from '@/actions/invoices';
 import { approvePayment, rejectPayment } from '@/actions/payments';
+import { requestPaymentApproval } from '@/actions/invoices';
 import { generateInvoiceReceipt } from '@/lib/pdf/invoice-receipt';
-import { Check, X, MessageSquare, AlertTriangle, CheckCircle, FileDown, RotateCcw } from 'lucide-react';
+import { Check, X, MessageSquare, AlertTriangle, CheckCircle, FileDown, RotateCcw, Send } from 'lucide-react';
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 interface InvoiceItemProps {
     invoice: any; // Using any for now to avoid complex type duplication, ideally should use Prisma type
@@ -15,6 +17,8 @@ interface InvoiceItemProps {
 
 export function InvoiceItem({ invoice }: InvoiceItemProps) {
     const [loading, setLoading] = useState(false);
+    const pathname = usePathname();
+    const isManagerView = pathname?.startsWith('/manager');
 
     const isPaid = invoice.status === 'PAID';
     const isOverdue = invoice.status === 'OVERDUE';
@@ -62,7 +66,7 @@ export function InvoiceItem({ invoice }: InvoiceItemProps) {
                     <div className="flex items-center gap-2">
                         <div className="text-xs text-amber-600 mr-2 flex flex-col items-end">
                             <span className="font-medium flex items-center gap-1"><AlertTriangle size={10} /> Pago declarado</span>
-                            <span className="opacity-70">{new Date(invoice.proof.createdAt).toLocaleDateString()}</span>
+                            <span className="opacity-70">{new Date(invoice.proof.createdAt).toLocaleDateString('es-ES')}</span>
                         </div>
                         <ConfirmDialog
                             trigger={
@@ -112,16 +116,29 @@ export function InvoiceItem({ invoice }: InvoiceItemProps) {
                             {isOverdue ? 'Reclamar' : 'Recordar'}
                         </Button>
 
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 border-emerald-500 text-emerald-600 hover:bg-emerald-50"
-                            onClick={() => handleAction(() => markInvoicePaid(invoice.id))}
-                            disabled={loading}
-                        >
-                            <CheckCircle size={14} className="mr-2" />
-                            Marcar Pagada
-                        </Button>
+                        {isManagerView ? (
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 border-rose-500 text-rose-600 hover:bg-rose-50"
+                                onClick={() => handleAction(() => requestPaymentApproval(invoice.id))}
+                                disabled={loading || isProcessing}
+                            >
+                                <Send size={14} className="mr-2" />
+                                {isProcessing ? 'En Revisión' : 'Informar Cobro'}
+                            </Button>
+                        ) : (
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+                                onClick={() => handleAction(() => markInvoicePaid(invoice.id))}
+                                disabled={loading}
+                            >
+                                <CheckCircle size={14} className="mr-2" />
+                                Marcar Pagada
+                            </Button>
+                        )}
                     </>
                 )}
 

@@ -6,6 +6,8 @@ import { Card } from '@/components/ui/shared';
 import { FinancialHeader } from '@/components/invoices/financial-header';
 import { InvoiceFilters } from '@/components/invoices/invoice-filters';
 import { TenantBillingCard } from '@/components/invoices/tenant-billing-card';
+import { InvoiceItem } from '@/components/invoices/invoice-item';
+import { Clock } from 'lucide-react';
 
 export default async function InvoicesPage(props: { searchParams: Promise<{ status?: string; search?: string }> }) {
     await requireLandlord();
@@ -150,7 +152,27 @@ export default async function InvoicesPage(props: { searchParams: Promise<{ stat
                 tenants={allTenants}
             />
 
-            {/* 3. Lista de Tarjetas de Inquilino */}
+            {/* 3. Pagos Pendientes de Aprobación (Maker-Checker Section) */}
+            {allInvoices.some(i => i.status === 'PAYMENT_PROCESSING') && (
+                <Card className="p-6 bg-amber-50 dark:bg-amber-900/10 border-amber-200 border-2 border-dashed">
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="bg-amber-100 text-amber-600 p-2 rounded-lg">
+                            <Clock size={20} />
+                        </div>
+                        <h2 className="text-xl font-bold text-amber-800 dark:text-amber-200">Pagos Pendientes de Verificación</h2>
+                    </div>
+                    <div className="space-y-3">
+                        {allInvoices.filter(i => i.status === 'PAYMENT_PROCESSING').map(inv => (
+                            <InvoiceItem key={inv.id} invoice={inv} />
+                        ))}
+                    </div>
+                    <p className="text-[10px] text-amber-600 font-bold mt-4 uppercase tracking-widest text-center">
+                        SOLICITADOS POR EL ENCARGADO O INQUILINOS
+                    </p>
+                </Card>
+            )}
+
+            {/* 4. Lista de Tarjetas de Inquilino */}
             <div className="grid grid-cols-1 gap-4">
                 {visibleTenants.map(tenant => (
                     <TenantBillingCard

@@ -6,7 +6,7 @@ import { db } from './db';
 
 // Define schema for login validation
 const loginSchema = z.object({
-    email: z.string().min(1),
+    identifier: z.string().min(1),
     password: z.string().min(1),
 });
 
@@ -28,24 +28,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     providers: [
         Credentials({
             credentials: {
-                email: { label: "Email", type: "email" },
+                identifier: { label: "Email o Usuario", type: "text" },
                 password: { label: "Password", type: "password" },
             },
             authorize: async (credentials) => {
-                const { email, password } = await loginSchema.parseAsync(credentials);
+                const { identifier, password } = await loginSchema.parseAsync(credentials);
 
-                const user = await db.user.findUnique({
-                    where: { email },
+                const user = await db.user.findFirst({
+                    where: {
+                        OR: [
+                            { email: identifier },
+                            { username: identifier }
+                        ]
+                    },
                 });
 
                 if (!user) {
-                    throw new Error("Invalid credentials");
+                    throw new Error("Credenciales inválidas");
                 }
 
                 const isValid = await bcrypt.compare(password, user.passwordHash);
 
                 if (!isValid) {
-                    throw new Error("Invalid credentials");
+                    throw new Error("Credenciales inválidas");
                 }
 
                 return {

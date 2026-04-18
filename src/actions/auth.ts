@@ -9,24 +9,32 @@ import { Role } from '@prisma/client';
 export async function login(prevState: any, formData: FormData) {
     try {
         console.log('[Action] Login action started');
-        const email = formData.get('email') as string;
+        const identifier = formData.get('email') as string; // We keep name="email" in form for autofill but it works as identifier
 
         let redirectTo = '/dashboard'; // Default for Landlord
 
         // Check role to redirect correctly
-        if (email) {
-            const user = await db.user.findUnique({
-                where: { email },
+        if (identifier) {
+            const user = await db.user.findFirst({
+                where: {
+                    OR: [
+                        { email: identifier },
+                        { username: identifier }
+                    ]
+                },
                 select: { role: true }
             });
 
             if (user?.role === 'TENANT') {
                 redirectTo = '/me';
+            } else if (user?.role === 'MANAGER') {
+                redirectTo = '/manager/dashboard';
             }
         }
 
         await signIn('credentials', {
-            ...Object.fromEntries(formData),
+            identifier,
+            password: formData.get('password') as string,
             redirectTo,
         });
     } catch (error) {
@@ -69,10 +77,12 @@ export async function registerLandlord(prevState: any, formData: FormData) {
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
+        const username = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
 
         await db.user.create({
             data: {
                 email,
+                username,
                 passwordHash,
                 role: Role.LANDLORD,
                 country: country as any,
@@ -81,7 +91,7 @@ export async function registerLandlord(prevState: any, formData: FormData) {
 
         // After registration, log them in
         await signIn('credentials', {
-            email,
+            identifier: email,
             password,
             redirectTo: '/dashboard',
         });

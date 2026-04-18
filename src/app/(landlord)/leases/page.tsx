@@ -18,10 +18,9 @@ export default async function LeasesPage() {
         orderBy: { status: 'asc' } // Active first
     });
 
-    const rooms = await db.room.findMany({
+    const rooms = (await db.room.findMany({
         where: { status: 'AVAILABLE', landlordId: landlordId }
-    });
-    rooms.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+    })).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
     const tenants = await db.tenantProfile.findMany({
         where: { landlordId: landlordId },
         include: { user: true }
@@ -82,12 +81,17 @@ export default async function LeasesPage() {
                                 <>
                                     {lease.status === 'ACTIVE' && (
                                         <div className="flex gap-2 mt-4">
-                                            <form action={async () => {
-                                                'use server';
-                                                await endLease(lease.id);
-                                            }}>
-                                                <Button variant="secondary" size="sm" type="submit">Finalizar Contrato</Button>
-                                            </form>
+                                            <ConfirmDialog
+                                                trigger={
+                                                    <Button variant="secondary" size="sm">Finalizar Contrato</Button>
+                                                }
+                                                title="Finalizar Contrato"
+                                                description="Se mantendrá el historial pero se cancelarán las facturas futuras. ¿Continuar?"
+                                                onConfirm={async () => {
+                                                    'use server';
+                                                    return await endLease(lease.id);
+                                                }}
+                                            />
 
                                             <ConfirmDialog
                                                 trigger={
@@ -99,7 +103,7 @@ export default async function LeasesPage() {
                                                 description="¿Estás seguro de eliminar este contrato? Se borrarán todas las facturas y datos asociados."
                                                 onConfirm={async () => {
                                                     'use server';
-                                                    await deleteLease(lease.id);
+                                                    return await deleteLease(lease.id);
                                                 }}
                                             />
                                         </div>
@@ -117,7 +121,7 @@ export default async function LeasesPage() {
                                                 description="¿Estás seguro de eliminar este historial permanentemente?"
                                                 onConfirm={async () => {
                                                     'use server';
-                                                    await deleteLease(lease.id);
+                                                    return await deleteLease(lease.id);
                                                 }}
                                             />
                                         </div>

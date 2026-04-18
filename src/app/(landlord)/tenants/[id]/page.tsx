@@ -1,12 +1,12 @@
 import { db } from '@/lib/db';
-import { requireLandlord, getLandlordContext } from '@/lib/rbac';
+import { requireManagementAccess, getLandlordContext } from '@/lib/rbac';
 import { Button, Card, Input } from '@/components/ui/shared';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { updateTenant } from '@/actions/tenants';
 import { redirect } from 'next/navigation';
 
 export default async function EditTenantPage(props: { params: Promise<{ id: string }> }) {
-    await requireLandlord();
+    await requireManagementAccess();
     const landlordId = await getLandlordContext();
     const params = await props.params;
     const { id } = params;

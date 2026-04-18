@@ -17,8 +17,8 @@ export default async function TenantLayout({
         <div className="min-h-screen bg-muted/20 text-foreground flex flex-col">
             <UserHeader user={{ email: user.email as string, role: Role.TENANT }} showLogo={true} />
 
-            <main className="flex-1 py-8">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <main className="flex-1 py-8 w-full overflow-x-hidden">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
                     <BackButton />
                     {children}
                 </div>

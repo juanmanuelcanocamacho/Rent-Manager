@@ -47,9 +47,11 @@ export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
     return (
         <aside className="w-64 border-r bg-card h-screen sticky top-0 flex flex-col hidden md:flex">
             <div className="p-6 border-b">
-                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
-                    Llavia
-                </h1>
+                <Link href={userRole === Role.LANDLORD ? '/dashboard' : userRole === Role.MANAGER ? '/manager/dashboard' : '/me'}>
+                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-600">
+                        Llavia
+                    </h1>
+                </Link>
             </div>
 
             <nav className="flex-1 p-4 space-y-2">
@@ -113,7 +115,7 @@ export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
                                     </span>
                                     <span className="text-[10px] uppercase font-bold text-muted-foreground flex items-center gap-1">
                                         <Shield size={10} />
-                                        {user.role === 'LANDLORD' ? 'PROPIETARIO' : user.role === 'MANAGER' ? 'GESTOR' : 'INQUILINO'}
+                                        {user.role === 'LANDLORD' ? 'PROPIETARIO' : user.role === 'MANAGER' ? 'ENCARGADO' : 'INQUILINO'}
                                     </span>
                                 </div>
                             </div>

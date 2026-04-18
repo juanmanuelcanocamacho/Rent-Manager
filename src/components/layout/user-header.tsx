@@ -6,6 +6,8 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { logout } from '@/actions/auth';
 import { Role } from '@prisma/client';
 
+import Link from 'next/link';
+
 interface UserHeaderProps {
     user: {
         email: string;
@@ -17,28 +19,30 @@ interface UserHeaderProps {
 export function UserHeader({ user, showLogo }: UserHeaderProps) {
     const roleLabel =
         user.role === Role.LANDLORD ? 'Propietario' :
-            user.role === Role.MANAGER ? 'Gestor' : 'Inquilino';
+            user.role === Role.MANAGER ? 'Encargado' : 'Inquilino';
+
+    const dashboardHref = user.role === Role.LANDLORD ? '/dashboard' : user.role === Role.MANAGER ? '/manager/dashboard' : '/me';
 
     return (
         <div className="bg-card border-b px-6 py-3 flex items-center justify-between shadow-sm sticky top-0 z-40">
             <div className="flex items-center gap-2">
                 {showLogo && (
-                    <>
+                    <Link href={dashboardHref} className="flex items-center gap-2">
                         <div className="bg-primary p-1.5 rounded-lg">
                             <span className="text-white font-bold text-lg">G</span>
                         </div>
                         <span className="font-bold text-xl tracking-tight hidden sm:inline">Llavia</span>
-                    </>
+                    </Link>
                 )}
             </div>
 
             <div className="flex items-center gap-3 sm:gap-4">
                 <ThemeToggle />
-                <div className="flex flex-col items-end mr-2">
-                    <span className="text-sm font-semibold text-foreground leading-none">{user.email}</span>
+                <div className="flex flex-col items-end flex-1 min-w-0 mr-2">
+                    <span className="text-sm font-semibold text-foreground leading-none truncate max-w-[130px] sm:max-w-[250px]">{user.email}</span>
                     <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-1 flex items-center gap-1">
-                        <Shield size={10} className="text-primary" />
-                        {roleLabel}
+                        <Shield size={10} className="text-primary shrink-0" />
+                        <span className="truncate">{roleLabel}</span>
                     </span>
                 </div>
 

@@ -194,14 +194,14 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                Email
+                Email o Usuario
               </label>
               <div className="relative group">
                 <User className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <input
                   name="email"
-                  type="email"
-                  placeholder="ejemplo@correo.com"
+                  type="text"
+                  placeholder="ejemplo@correo.com o usuario"
                   required
                   className="flex h-12 w-full rounded-2xl border-2 border-input bg-background/50 pl-12 pr-4 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all disabled:opacity-50"
                 />

@@ -38,10 +38,12 @@ export default async function TeamPage() {
                                         <UserCog size={24} />
                                     </div>
                                     <div>
-                                        <p className="font-semibold">{manager.email}</p>
-                                        <div className="flex gap-2 text-xs text-muted-foreground mt-1">
-                                            <Badge variant="secondary" className="text-[10px]">MANAGER</Badge>
-                                            <span>Creado el {manager.createdAt.toLocaleDateString()}</span>
+                                        <p className="font-semibold">{manager.name || 'Sin nombre'}</p>
+                                        <p className="text-sm text-muted-foreground">{manager.email}</p>
+                                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mt-1 items-center">
+                                            <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-primary/20">@{manager.username}</Badge>
+                                            {manager.phone && <span>• {manager.phone}</span>}
+                                            <span>• Creado el {manager.createdAt.toLocaleDateString()}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -52,10 +54,10 @@ export default async function TeamPage() {
                                         </Button>
                                     }
                                     title="Eliminar Encargado"
-                                    description={`¿Seguro que quieres eliminar el acceso de ${manager.email}?`}
+                                    description={`¿Seguro que quieres eliminar el acceso de ${manager.name || manager.email}?`}
                                     onConfirm={async () => {
                                         'use server';
-                                        await deleteManager(manager.id);
+                                        return await deleteManager(manager.id);
                                     }}
                                 />
                             </Card>
@@ -74,27 +76,27 @@ export default async function TeamPage() {
 
                         <form action={createManager} className="space-y-4">
                             <div>
-                                <label className="text-sm font-medium">Email (Login)</label>
-                                <Input name="email" type="email" placeholder="encargado@ejemplo.com" required />
+                                <label className="text-sm font-medium">Nombre Completo</label>
+                                <Input name="name" placeholder="Ej: Juan Pérez" required />
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium">Email (Opcional si hay usuario)</label>
+                                <Input name="email" type="email" placeholder="juan@ejemplo.com" />
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium">Usuario (Login)</label>
+                                <Input name="username" placeholder="juanperez" required />
+                                <p className="text-[10px] text-muted-foreground mt-1">Se usará para iniciar sesión.</p>
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium">Teléfono (Opcional)</label>
+                                <Input name="phone" placeholder="+34 600 000 000" />
                             </div>
                             <div>
                                 <label className="text-sm font-medium">Contraseña Inicial</label>
                                 <Input name="password" type="text" placeholder="Clave segura" required minLength={6} />
-                                <p className="text-xs text-muted-foreground mt-1">El encargado usará esto para entrar.</p>
+                                <p className="text-[10px] text-muted-foreground mt-1">El encargado podrá usar su email o usuario.</p>
                             </div>
-
-                            {/* Full Name is not in User model currently, just Email/Password/Role. 
-                                Wait, createManager action expects fullName?
-                                Let's check schema/action. Action asks for fullName but schema User model (viewed previously) 
-                                only has email, password, role. 
-                                Ah, TenantProfile has fullName. User doesn't.
-                                I'll remove fullName from action or add it to schema?
-                                Schema is lean. Let's just use email for now or add name to User?
-                                User model: id, email, passwordHash, role, createdAt, updatedAt.
-                                No name column on User. 
-                                I will update action to NOT use name, or assume User model update.
-                                Let's keep it simple: just Email + Password.
-                            */}
 
                             <Button type="submit" className="w-full">
                                 Crear Encargado

@@ -50,3 +50,13 @@ export const landlordRoutes = [
  * Routes accessible only by TENANT role
  */
 export const tenantRoutesPrefix = '/me';
+
+/**
+ * Routes accessible only by MANAGER role
+ */
+export const managerRoutesPrefix = '/manager';
+export const managerRoutes = [
+    '/manager/dashboard',
+    '/manager/invoices',
+    '/manager/expenses',
+];

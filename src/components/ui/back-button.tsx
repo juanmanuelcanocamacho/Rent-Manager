@@ -8,8 +8,9 @@ export function BackButton() {
     const router = useRouter();
     const pathname = usePathname();
 
-    // Don't show back button on main dashboard or tenant home
-    if (pathname === '/dashboard' || pathname === '/me') return null;
+    // Don't show back button on main root pages
+    const rootPages = ['/dashboard', '/me', '/manager/dashboard'];
+    if (rootPages.includes(pathname ?? '')) return null;
 
     return (
         <Button

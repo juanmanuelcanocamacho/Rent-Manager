@@ -13,13 +13,13 @@ export default async function LandlordLayout({
     const role = user.role as Role;
 
     return (
-        <div className="flex min-h-screen">
+        <div className="flex h-screen w-full overflow-hidden bg-background">
             <Sidebar userRole={role} user={{ email: user.email as string, role }} />
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
                 <MobileHeader userRole={role} user={{ email: user.email as string, role }} />
                 {/* <UserHeader user={{ email: user.email as string, role }} /> */}
-                <main className="flex-1 p-2 md:p-6 lg:p-8 bg-muted/20">
-                    <div className="mx-auto max-w-full md:max-w-6xl">
+                <main className="flex-1 p-2 md:p-6 lg:p-8 bg-muted/20 w-full overflow-x-hidden overflow-y-auto">
+                    <div className="mx-auto max-w-full md:max-w-6xl w-full">
                         <BackButton />
                         {children}
                     </div>

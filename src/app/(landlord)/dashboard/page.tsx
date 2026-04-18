@@ -1,4 +1,5 @@
 import { getDashboardData } from '@/actions/dashboard';
+import { requireLandlord } from '@/lib/rbac';
 import { Card, Button } from '@/components/ui/shared';
 import Link from 'next/link';
 import { formatMoney } from '@/lib/money';
@@ -13,7 +14,9 @@ import { RecentActivityFeed } from '@/components/dashboard/RecentActivityFeed';
 import { LlaviaCopilotWidget } from '@/components/dashboard/LlaviaCopilotWidget';
 
 export default async function LandlordDashboard() {
-    // A single standardized call to our backend action
+    await requireLandlord();
+
+    // 2. Branch for Landlord
     const data = await getDashboardData();
     const today = getNowInMadrid();
 

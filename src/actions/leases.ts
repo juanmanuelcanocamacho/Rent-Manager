@@ -102,84 +102,94 @@ export async function createLease(formData: FormData) {
 }
 
 export async function endLease(leaseId: string) {
-    const landlordId = await getLandlordContext();
+    try {
+        const landlordId = await getLandlordContext();
 
-    await db.$transaction(async (tx) => {
-        const lease = await tx.lease.findUnique({
-            where: { id_landlordId: { id: leaseId, landlordId } },
-            include: { rooms: true }
-        });
-        if (!lease) throw new Error("Lease not found or unauthorized");
-
-        await tx.lease.update({
-            where: { id_landlordId: { id: leaseId, landlordId } },
-            data: {
-                status: 'ENDED',
-                endDate: getNowInMadrid(), // Set end date to now
-            }
-        });
-
-        // Eliminar las facturas futuras (Pendientes) generadas para este contrato
-        await tx.invoice.deleteMany({
-            where: {
-                leaseId: leaseId,
-                status: 'PENDING',
-                dueDate: { gt: getNowInMadrid() }
-            }
-        });
-
-        if (lease.rooms.length > 0) {
-            await tx.room.updateMany({
-                where: { id: { in: lease.rooms.map(r => r.id) } },
-                data: { status: 'AVAILABLE' }
+        await db.$transaction(async (tx) => {
+            const lease = await tx.lease.findUnique({
+                where: { id_landlordId: { id: leaseId, landlordId } },
+                include: { rooms: true }
             });
-        }
-    });
+            if (!lease) throw new Error("El contrato no existe o no tienes permisos.");
 
-    revalidatePath('/rooms');
+            await tx.lease.update({
+                where: { id_landlordId: { id: leaseId, landlordId } },
+                data: {
+                    status: 'ENDED',
+                    endDate: getNowInMadrid(),
+                }
+            });
+
+            await tx.invoice.deleteMany({
+                where: {
+                    leaseId: leaseId,
+                    status: 'PENDING',
+                    dueDate: { gt: getNowInMadrid() }
+                }
+            });
+
+            if (lease.rooms.length > 0) {
+                await tx.room.updateMany({
+                    where: { id: { in: lease.rooms.map(r => r.id) } },
+                    data: { status: 'AVAILABLE' }
+                });
+            }
+        });
+
+        revalidatePath('/rooms');
+        revalidatePath('/leases');
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (error) {
+        console.error("Error ending lease:", error);
+        return { error: error instanceof Error ? error.message : "Ocurrió un error al finalizar el contrato." };
+    }
 }
 
 export async function deleteLease(leaseId: string) {
-    const landlordId = await getLandlordContext();
+    try {
+        const landlordId = await getLandlordContext();
 
-    await db.$transaction(async (tx) => {
-        const lease = await tx.lease.findUnique({
-            where: { id_landlordId: { id: leaseId, landlordId } },
-            include: { rooms: true }
-        });
-        if (!lease) throw new Error("Lease not found or unauthorized");
-
-        // 1. Delete linked Invoice records (Payments, NotificationLogs)
-        const invoices = await tx.invoice.findMany({ where: { leaseId } });
-        const invoiceIds = invoices.map(i => i.id);
-
-        if (invoiceIds.length > 0) {
-            await tx.payment.deleteMany({ where: { invoiceId: { in: invoiceIds } } });
-            await tx.notificationLog.deleteMany({ where: { invoiceId: { in: invoiceIds } } });
-        }
-
-        // 2. Delete Invoices and other Lease linked records
-        await tx.invoice.deleteMany({ where: { leaseId } });
-        await tx.message.deleteMany({ where: { leaseId } });
-        await tx.notificationLog.deleteMany({ where: { leaseId } });
-
-        // 3. Delete Lease
-        await tx.lease.delete({
-            where: { id_landlordId: { id: leaseId, landlordId } }
-        });
-
-        // 4. Update Rooms Status
-        if (lease.status === 'ACTIVE' && lease.rooms.length > 0) {
-            await tx.room.updateMany({
-                where: { id: { in: lease.rooms.map(r => r.id) } },
-                data: { status: 'AVAILABLE' }
+        await db.$transaction(async (tx) => {
+            const lease = await tx.lease.findUnique({
+                where: { id_landlordId: { id: leaseId, landlordId } },
+                include: { rooms: true }
             });
-        }
-    });
+            if (!lease) throw new Error("El contrato no existe o no tienes permisos.");
 
-    revalidatePath('/leases');
-    revalidatePath('/rooms');
-    revalidatePath('/invoices');
+            const invoices = await tx.invoice.findMany({ where: { leaseId } });
+            const invoiceIds = invoices.map(i => i.id);
+
+            if (invoiceIds.length > 0) {
+                await tx.payment.deleteMany({ where: { invoiceId: { in: invoiceIds } } });
+                await tx.notificationLog.deleteMany({ where: { invoiceId: { in: invoiceIds } } });
+            }
+
+            await tx.invoice.deleteMany({ where: { leaseId } });
+            await tx.message.deleteMany({ where: { leaseId } });
+            await tx.notificationLog.deleteMany({ where: { leaseId } });
+
+            await tx.lease.delete({
+                where: { id_landlordId: { id: leaseId, landlordId } }
+            });
+
+            if (lease.status === 'ACTIVE' && lease.rooms.length > 0) {
+                await tx.room.updateMany({
+                    where: { id: { in: lease.rooms.map(r => r.id) } },
+                    data: { status: 'AVAILABLE' }
+                });
+            }
+        });
+
+        revalidatePath('/leases');
+        revalidatePath('/rooms');
+        revalidatePath('/invoices');
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting lease:", error);
+        return { error: error instanceof Error ? error.message : "Ocurrió un error al eliminar el contrato." };
+    }
 }
 
 export async function updateLease(formData: FormData) {

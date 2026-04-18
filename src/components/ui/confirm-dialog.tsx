@@ -11,7 +11,7 @@ interface ConfirmDialogProps {
     description?: string;
     confirmText?: string;
     cancelText?: string;
-    onConfirm: () => void | Promise<void>;
+    onConfirm: () => void | Promise<void> | Promise<{ error?: string } | any>;
     variant?: 'destructive' | 'primary';
 }
 
@@ -26,14 +26,23 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleConfirm = async () => {
         try {
             setLoading(true);
-            await onConfirm();
-            setIsOpen(false);
-        } catch (error) {
-            console.error(error);
+            setError(null);
+            const result = await onConfirm();
+            
+            // If the action returned an object with an error, show it
+            if (result && typeof result === 'object' && result.error) {
+                setError(result.error);
+            } else {
+                setIsOpen(false);
+            }
+        } catch (err) {
+            console.error(err);
+            setError("Ocurrió un error al procesar la solicitud.");
         } finally {
             setLoading(false);
         }
@@ -61,6 +70,15 @@ export function ConfirmDialog({
                                 </p>
                             </div>
                         </div>
+
+                        {error && (
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 rounded-lg flex items-start gap-2 animate-in slide-in-from-top-1 duration-200">
+                                <AlertTriangle size={16} className="text-red-600 mt-0.5 shrink-0" />
+                                <p className="text-xs text-red-600 font-medium">
+                                    {error}
+                                </p>
+                            </div>
+                        )}
 
                         <div className="flex justify-end gap-3 pt-2">
                             <Button

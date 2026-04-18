@@ -141,69 +141,60 @@ export async function updateTenant(formData: FormData) {
 }
 
 export async function deleteTenant(tenantId: string) {
-    await requireLandlord();
+    try {
+        await requireLandlord();
+        const landlordId = await getLandlordContext();
 
-    const landlordId = await getLandlordContext();
+        await db.$transaction(async (tx) => {
+            const tenant = await tx.tenantProfile.findUnique({
+                where: { id_landlordId: { id: tenantId, landlordId } }
+            });
+            if (!tenant) throw new Error("El inquilino no existe o no tienes permisos.");
 
-    await db.$transaction(async (tx) => {
-        const tenant = await tx.tenantProfile.findUnique({
-            where: { id_landlordId: { id: tenantId, landlordId } }
-        });
-        if (!tenant) throw new Error("Tenant not found or unauthorized");
+            const userId = tenant.userId;
 
-        const userId = tenant.userId;
+            // 1. Delete all Leases for this tenant
+            const leases = await tx.lease.findMany({
+                where: { tenantId },
+                include: { rooms: true }
+            });
 
-        // 1. Delete all Leases for this tenant
-        // We need to fetch them to delete related records
-        const leases = await tx.lease.findMany({
-            where: { tenantId },
-            include: { rooms: true }
-        });
+            for (const lease of leases) {
+                const invoices = await tx.invoice.findMany({ where: { leaseId: lease.id } });
+                const invoiceIds = invoices.map(i => i.id);
 
-        for (const lease of leases) {
-            // Delete invoice/payment/notification/message for each lease
-            // Same logic as deleteLease
-            const invoices = await tx.invoice.findMany({ where: { leaseId: lease.id } });
-            const invoiceIds = invoices.map(i => i.id);
+                if (invoiceIds.length > 0) {
+                    await tx.payment.deleteMany({ where: { invoiceId: { in: invoiceIds } } });
+                    await tx.notificationLog.deleteMany({ where: { invoiceId: { in: invoiceIds } } });
+                }
 
-            if (invoiceIds.length > 0) {
-                await tx.payment.deleteMany({ where: { invoiceId: { in: invoiceIds } } });
-                await tx.notificationLog.deleteMany({ where: { invoiceId: { in: invoiceIds } } });
+                await tx.invoice.deleteMany({ where: { leaseId: lease.id } });
+                await tx.message.deleteMany({ where: { leaseId: lease.id } });
+                await tx.notificationLog.deleteMany({ where: { leaseId: lease.id } });
+
+                await tx.lease.delete({ where: { id: lease.id } });
+
+                if (lease.status === 'ACTIVE' && lease.rooms.length > 0) {
+                    await tx.room.updateMany({
+                        where: { id: { in: lease.rooms.map(r => r.id) } },
+                        data: { status: 'AVAILABLE' }
+                    });
+                }
             }
 
-            await tx.invoice.deleteMany({ where: { leaseId: lease.id } });
-            await tx.message.deleteMany({ where: { leaseId: lease.id } });
-            await tx.notificationLog.deleteMany({ where: { leaseId: lease.id } });
+            await tx.message.deleteMany({ where: { tenantId } });
+            await tx.user.delete({ where: { id: userId } });
+        });
 
-            await tx.lease.delete({ where: { id: lease.id } });
-
-            // Set Room to AVAILABLE if active
-            if (lease.status === 'ACTIVE' && lease.rooms.length > 0) {
-                await tx.room.updateMany({
-                    where: { id: { in: lease.rooms.map(r => r.id) } },
-                    data: { status: 'AVAILABLE' }
-                });
-            }
-        }
-
-        // 2. Delete Tenant Profile is automatic if we delete User (due to schema Relation?), 
-        // BUT schema says: user User @relation(...)
-        // Usually User -> TenantProfile relation might NOT cascade delete User if we delete TenantProfile.
-        // But if we delete USER, TenantProfile should go.
-        // Let's delete the USER.
-
-        // However, TenantProfile -> Messages (relation?)
-        // Messages are linked to TenantProfile as well.
-        await tx.message.deleteMany({ where: { tenantId } });
-
-        // Finally delete the User
-        await tx.user.delete({ where: { id: userId } });
-    });
-
-    revalidatePath('/tenants');
-    revalidatePath('/leases');
-    revalidatePath('/dashboard');
-    revalidatePath('/invoices');
+        revalidatePath('/tenants');
+        revalidatePath('/leases');
+        revalidatePath('/dashboard');
+        revalidatePath('/invoices');
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting tenant:", error);
+        return { error: error instanceof Error ? error.message : "Ocurrió un error al eliminar el inquilino." };
+    }
 }
 
 
