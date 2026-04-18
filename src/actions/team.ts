@@ -17,24 +17,30 @@ export async function createManager(formData: FormData) {
     const phone = formData.get('phone') as string;
     const password = formData.get('password') as string;
 
-    if (!password || (!email && !username)) {
+    // Normalize empty strings to null for optional unique fields
+    const emailNorm = email?.trim() || null;
+    const usernameNorm = username?.trim() || null;
+    const nameNorm = name?.trim() || null;
+    const phoneNorm = phone?.trim() || null;
+
+    if (!password || (!emailNorm && !usernameNorm)) {
         throw new Error('Debes proporcionar al menos un Email o un Usuario, y una Contraseña');
     }
 
-    if (username) {
+    if (usernameNorm) {
         // Check for duplicate username
         const existingUsername = await db.user.findFirst({
-            where: { username }
+            where: { username: usernameNorm }
         });
         if (existingUsername) {
             throw new Error('El nombre de usuario ya está en uso');
         }
     }
 
-    if (email) {
+    if (emailNorm) {
         // Check for duplicate email
         const existingEmail = await db.user.findUnique({
-            where: { email }
+            where: { email: emailNorm }
         });
         if (existingEmail) {
             throw new Error('El email ya está en uso');
@@ -45,10 +51,10 @@ export async function createManager(formData: FormData) {
 
     await db.user.create({
         data: {
-            email,
-            username,
-            name,
-            phone,
+            email: emailNorm,
+            username: usernameNorm,
+            name: nameNorm,
+            phone: phoneNorm,
             passwordHash,
             role: Role.MANAGER,
             landlordId: landlordId,
