@@ -1,6 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { formatMoney } from '@/lib/money';
+import QRCode from 'qrcode';
 
 interface InvoiceData {
     id: string;
@@ -11,18 +12,18 @@ interface InvoiceData {
     rooms: string[];
 }
 
-export function generateInvoiceReceipt(data: InvoiceData) {
-    const doc = generateInvoicePdfDoc(data);
+export async function generateInvoiceReceipt(data: InvoiceData) {
+    const doc = await generateInvoicePdfDoc(data);
     doc.save(`recibo_${data.tenantName.replace(/\s+/g, '_').toLowerCase()}_${data.id.substring(0, 8)}.pdf`);
 }
 
-export function getInvoiceReceiptFile(data: InvoiceData): File {
-    const doc = generateInvoicePdfDoc(data);
+export async function getInvoiceReceiptFile(data: InvoiceData): Promise<File> {
+    const doc = await generateInvoicePdfDoc(data);
     const blob = doc.output('blob');
     return new File([blob], `recibo_${data.id.substring(0, 8)}.pdf`, { type: 'application/pdf' });
 }
 
-function generateInvoicePdfDoc(data: InvoiceData) {
+async function generateInvoicePdfDoc(data: InvoiceData) {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -203,9 +204,29 @@ function generateInvoicePdfDoc(data: InvoiceData) {
     doc.text('Este documento digital sirve como comprobante oficial de pago.', 20, footerY);
     doc.text('Gracias por utilizar Llavia para la gestión de su alquiler.', 20, footerY + 4);
 
-    doc.setTextColor(...primaryColor);
-    doc.setFont('helvetica', 'bold');
-    doc.text('llavia.com', pageWidth - 20, footerY + 2, { align: 'right' });
+    // QR Code for Verification
+    try {
+        const verifyUrl = `https://llavia.com/verificar/${data.id}`;
+        // Generate QR code as Base64 Data URL
+        const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+            margin: 1,
+            color: {
+                dark: '#0f172a', // slate-900
+                light: '#ffffff'
+            }
+        });
+        
+        // Add QR code image
+        doc.addImage(qrDataUrl, 'PNG', pageWidth - 40, footerY - 6, 20, 20);
+        
+        // QR text
+        doc.setFontSize(6);
+        doc.setTextColor(...primaryColor);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Escanea para verificar', pageWidth - 30, footerY + 17, { align: 'center' });
+    } catch (e) {
+        console.error("Error generating QR code for invoice:", e);
+    }
 
     // Return doc
     return doc;

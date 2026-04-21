@@ -35,6 +35,7 @@ interface TenantInvoiceAccordionProps {
 
 export function TenantInvoiceAccordion({ tenantName, invoices }: TenantInvoiceAccordionProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
     const [sharing, setSharing] = useState(false);
 
@@ -55,27 +56,24 @@ export function TenantInvoiceAccordion({ tenantName, invoices }: TenantInvoiceAc
         };
 
         try {
-            const file = getInvoiceReceiptFile(data);
             const tenantPart = data.tenantName.split(' ')[0];
-            const shareData = {
-                files: [file],
-                title: `Recibo de Pago - ${tenantPart}`,
-                text: `Hola ${tenantPart}, aquí tienes tu recibo de pago de Llavia.`,
+            const phone = invoice.lease.tenant.phoneE164?.replace('+', '') || '';
+            const month = new Date(data.dueDate).toLocaleDateString('es-ES', { month: 'long' });
+            
+            const roomsCount = data.rooms.length;
+            const numberWords: Record<number, string> = {
+                1: 'una', 2: 'dos', 3: 'tres', 4: 'cuatro', 5: 'cinco'
             };
+            const countWord = numberWords[roomsCount] || roomsCount.toString();
+            const concept = roomsCount === 1 ? 'una habitación' : `${countWord} habitaciones`;
+            
+            const text = `Hola ${tenantPart} 👋, acabo de generar tu recibo correspondiente al mes de ${month} por el alquiler de ${concept}.\n\n¡Todo en orden! ✨ Te lo adjunto por aquí. Un saludo.`;
+            
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+            await generateInvoiceReceipt(data);
 
-            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-                await navigator.share(shareData);
-            } else {
-                const phone = invoice.lease.tenant.phoneE164?.replace('+', '') || '';
-                const text = `Hola ${tenantPart}, acabo de generar tu recibo. Te lo envío por aquí (recuerda adjuntar el archivo descargado).`;
-                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
-                generateInvoiceReceipt(data);
-            }
         } catch (err: any) {
-            // Silence standard AbortError when user cancels sharing
-            if (err.name !== 'AbortError') {
-                console.error('Error sharing:', err);
-            }
+            console.error('Error sharing:', err);
         } finally {
             setSharing(false);
         }
@@ -224,17 +222,25 @@ export function TenantInvoiceAccordion({ tenantName, invoices }: TenantInvoiceAc
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => generateInvoiceReceipt({
-                                                id: invoice.id,
-                                                amountCents: invoice.amountCents,
-                                                dueDate: invoice.dueDate,
-                                                paidAt: invoice.paidAt,
-                                                tenantName: invoice.lease.tenant.fullName,
-                                                rooms: invoice.lease.rooms.map(r => r.name)
-                                            })}
+                                            disabled={downloadingId === invoice.id}
+                                            onClick={async () => {
+                                                setDownloadingId(invoice.id);
+                                                try {
+                                                    await generateInvoiceReceipt({
+                                                        id: invoice.id,
+                                                        amountCents: invoice.amountCents,
+                                                        dueDate: invoice.dueDate,
+                                                        paidAt: invoice.paidAt,
+                                                        tenantName: invoice.lease.tenant.fullName,
+                                                        rooms: invoice.lease.rooms.map(r => r.name)
+                                                    });
+                                                } finally {
+                                                    setDownloadingId(null);
+                                                }
+                                            }}
                                             className="gap-2 border-primary/20 text-primary hover:bg-primary/5 h-8 px-3"
                                         >
-                                            <FileDown size={14} /> PDF
+                                            <FileDown size={14} /> {downloadingId === invoice.id ? 'PDF...' : 'PDF'}
                                         </Button>
 
                                         <Button

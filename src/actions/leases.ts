@@ -227,6 +227,18 @@ export async function updateLease(formData: FormData) {
                     dueDate: { gt: getNowInMadrid() }
                 }
             });
+        } else {
+            // Si el contrato sigue activo, actualizamos el importe de las facturas futuras pendientes
+            await tx.invoice.updateMany({
+                where: {
+                    leaseId: id,
+                    status: 'PENDING',
+                    dueDate: { gt: getNowInMadrid() }
+                },
+                data: {
+                    amountCents: Math.round(rentAmount * 100),
+                }
+            });
         }
     });
 

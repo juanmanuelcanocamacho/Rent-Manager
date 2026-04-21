@@ -18,6 +18,7 @@ interface InvoiceItemProps {
 export function InvoiceItem({ invoice }: InvoiceItemProps) {
     const [loading, setLoading] = useState(false);
     const [sharing, setSharing] = useState(false);
+    const [downloading, setDownloading] = useState(false);
     const pathname = usePathname();
     const isManagerView = pathname?.startsWith('/manager');
 
@@ -38,28 +39,23 @@ export function InvoiceItem({ invoice }: InvoiceItemProps) {
         };
 
         try {
-            const file = getInvoiceReceiptFile(data);
             const tenantName = data.tenantName.split(' ')[0];
-            const shareData = {
-                files: [file],
-                title: `Recibo de Pago - ${tenantName}`,
-                text: `Hola ${tenantName}, aquí tienes tu recibo de pago de Llavia.`,
+            const phone = invoice.lease.tenant.phoneE164?.replace('+', '') || '';
+            const month = new Date(data.dueDate).toLocaleDateString('es-ES', { month: 'long' });
+            
+            const roomsCount = data.rooms.length;
+            const numberWords: Record<number, string> = {
+                1: 'una', 2: 'dos', 3: 'tres', 4: 'cuatro', 5: 'cinco'
             };
-
-            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-                await navigator.share(shareData);
-            } else {
-                // Fallback for Desktop: Open WhatsApp and tell user to attach
-                const phone = invoice.lease.tenant.phoneE164?.replace('+', '') || '';
-                const text = `Hola ${tenantName}, acabo de generar tu recibo. Te lo envío por aquí (recuerda adjuntar el archivo descargado).`;
-                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
-                generateInvoiceReceipt(data); // Also trigger download as fallback
-            }
+            const countWord = numberWords[roomsCount] || roomsCount.toString();
+            const concept = roomsCount === 1 ? 'una habitación' : `${countWord} habitaciones`;
+            
+            const text = `Hola ${tenantName} 👋, acabo de generar tu recibo correspondiente al mes de ${month} por el alquiler de ${concept}.\n\nTe lo adjunto por aquí. Un saludo.`;
+            
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+            await generateInvoiceReceipt(data); 
         } catch (err: any) {
-            // Ignore AbortError (user cancelled)
-            if (err.name !== 'AbortError') {
-                console.error('Error sharing:', err);
-            }
+            console.error('Error sharing:', err);
         } finally {
             setSharing(false);
         }
@@ -194,16 +190,24 @@ export function InvoiceItem({ invoice }: InvoiceItemProps) {
                             size="sm"
                             variant="ghost"
                             className="h-8 text-primary hover:bg-primary/10"
-                            onClick={() => generateInvoiceReceipt({
-                                id: invoice.id,
-                                amountCents: invoice.amountCents,
-                                dueDate: invoice.dueDate,
-                                paidAt: invoice.paidAt,
-                                tenantName: invoice.lease.tenant.fullName,
-                                rooms: invoice.lease.rooms.map((r: any) => r.name)
-                            })}
+                            disabled={downloading}
+                            onClick={async () => {
+                                setDownloading(true);
+                                try {
+                                    await generateInvoiceReceipt({
+                                        id: invoice.id,
+                                        amountCents: invoice.amountCents,
+                                        dueDate: invoice.dueDate,
+                                        paidAt: invoice.paidAt,
+                                        tenantName: invoice.lease.tenant.fullName,
+                                        rooms: invoice.lease.rooms.map((r: any) => r.name)
+                                    });
+                                } finally {
+                                    setDownloading(false);
+                                }
+                            }}
                         >
-                            <FileDown size={14} className="mr-1.5" /> PDF
+                            <FileDown size={14} className="mr-1.5" /> {downloading ? 'PDF...' : 'PDF'}
                         </Button>
 
                         <Button
