@@ -36,41 +36,86 @@ export default function ReportGenerator({ tenants, condensed = false }: { tenant
 
             // Generate PDF
             const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.getWidth();
 
-            // Header
-            doc.setFontSize(20);
-            doc.text('Reporte de Facturación', 14, 22);
+            // Color Palette based on Llavia brand (Indigo/Slate)
+            const primaryColor: [number, number, number] = [99, 102, 241]; 
+            const slateDark: [number, number, number] = [30, 41, 59];      
+            const slateMed: [number, number, number] = [100, 116, 139];    
+            const slateLight: [number, number, number] = [248, 250, 252];  
+            const successColor: [number, number, number] = [34, 197, 94];  
+            const dangerColor: [number, number, number] = [239, 68, 68];
 
-            doc.setFontSize(10);
-            doc.text(`Generado el: ${new Date().toLocaleDateString()}`, 14, 30);
-            if (selectedTenant !== 'ALL') {
-                const tenantName = tenants.find(t => t.id === selectedTenant)?.fullName || 'Desconocido';
-                doc.text(`Inquilino: ${tenantName}`, 14, 35);
-            }
-            doc.text(`Estado: ${selectedStatus === 'ALL' ? 'Todos' : selectedStatus}`, 14, 40);
+            // 1. Header & Branding
+            doc.setFillColor(...primaryColor);
+            doc.rect(0, 0, pageWidth, 2, 'F');
 
-            // Summary Box
-            doc.setDrawColor(200);
-            doc.setFillColor(245, 245, 245);
-            doc.rect(14, 45, 180, 30, 'FD'); // Increased height
+            doc.setFillColor(...primaryColor);
+            doc.roundedRect(20, 15, 12, 12, 3, 3, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('L', 26, 23.5, { align: 'center' });
 
-            doc.setFontSize(12);
-            doc.text('Resumen', 20, 52);
-            doc.setFontSize(10);
+            doc.setTextColor(...slateDark);
+            doc.setFontSize(22);
+            doc.setFont('helvetica', 'bold');
+            doc.text('LLAVIA', 36, 24.5);
 
-            // Row 1
-            doc.text(`Total Facturado: ${formatMoney(totalAmount)}`, 20, 60);
-            doc.text(`Pagado: ${formatMoney(paidAmount)}`, 100, 60);
+            doc.setTextColor(...slateMed);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Gestión Integral de Alquileres', 36, 29);
 
-            // Row 2
-            doc.text(`Pendiente Total: ${formatMoney(pendingAmount)}`, 20, 68);
+            // Report Title
+            doc.setTextColor(...primaryColor);
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('REPORTE DE FACTURACIÓN', pageWidth - 20, 22, { align: 'right' });
 
-            // Overdue in Red
-            doc.setTextColor(231, 76, 60); // Red
-            doc.text(`Deuda Vencida: ${formatMoney(overdueAmount)}`, 100, 68);
-            doc.setTextColor(0, 0, 0); // Reset to Black
+            doc.setFontSize(9);
+            doc.setTextColor(...slateMed);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Generado el: ${new Date().toLocaleDateString()}`, pageWidth - 20, 28, { align: 'right' });
 
-            // Table
+            // 2. Summary Cards
+            const summaryY = 42;
+            const cardWidth = (pageWidth - 40 - 10) / 3; 
+
+            // Card 1: Facturado
+            doc.setFillColor(...slateLight);
+            doc.roundedRect(20, summaryY, cardWidth, 18, 2, 2, 'F');
+            doc.setTextColor(...slateMed);
+            doc.setFontSize(7);
+            doc.text('TOTAL FACTURADO', 20 + cardWidth/2, summaryY + 7, { align: 'center' });
+            doc.setTextColor(...slateDark);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text(formatMoney(totalAmount), 20 + cardWidth/2, summaryY + 14, { align: 'center' });
+
+            // Card 2: Pagado
+            doc.setFillColor(240, 253, 244); 
+            doc.roundedRect(20 + cardWidth + 5, summaryY, cardWidth, 18, 2, 2, 'F');
+            doc.setTextColor(...successColor);
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'normal');
+            doc.text('TOTAL PAGADO', 20 + cardWidth + 5 + cardWidth/2, summaryY + 7, { align: 'center' });
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text(formatMoney(paidAmount), 20 + cardWidth + 5 + cardWidth/2, summaryY + 14, { align: 'center' });
+
+            // Card 3: Vencido
+            doc.setFillColor(254, 242, 242); 
+            doc.roundedRect(20 + (cardWidth + 5)*2, summaryY, cardWidth, 18, 2, 2, 'F');
+            doc.setTextColor(...dangerColor);
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'normal');
+            doc.text('DEUDA VENCIDA', 20 + (cardWidth + 5)*2 + cardWidth/2, summaryY + 7, { align: 'center' });
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text(formatMoney(overdueAmount), 20 + (cardWidth + 5)*2 + cardWidth/2, summaryY + 14, { align: 'center' });
+
+            // Filters label
             const translateStatus = (status: string) => {
                 const map: Record<string, string> = {
                     'PAID': 'Pagado',
@@ -81,6 +126,14 @@ export default function ReportGenerator({ tenants, condensed = false }: { tenant
                 return map[status] || status;
             };
 
+            doc.setTextColor(...slateMed);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            const tenantText = selectedTenant === 'ALL' ? 'Todos' : (tenants.find(t => t.id === selectedTenant)?.fullName || 'Desconocido');
+            const filterText = `Filtros Aplicados  —  Inquilino: ${tenantText}   |   Estado: ${selectedStatus === 'ALL' ? 'Todos' : translateStatus(selectedStatus)}`;
+            doc.text(filterText, 20, summaryY + 28);
+
+            // 3. Table
             const tableData = invoices.map(inv => [
                 new Date(inv.dueDate).toLocaleDateString(),
                 inv.lease.tenant.fullName,
@@ -91,31 +144,54 @@ export default function ReportGenerator({ tenants, condensed = false }: { tenant
             ]);
 
             autoTable(doc, {
-                startY: 85,
+                startY: summaryY + 33,
                 head: [['Fecha Venc.', 'Inquilino', 'Habitación', 'Monto', 'Estado', 'Pagado el']],
                 body: tableData,
-                styles: { fontSize: 8 },
-                headStyles: { fillColor: [41, 128, 185] },
+                styles: { 
+                    font: 'helvetica', 
+                    fontSize: 8,
+                    textColor: slateDark,
+                    cellPadding: 4,
+                },
+                headStyles: { 
+                    fillColor: primaryColor,
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: slateLight
+                },
                 didParseCell: (data) => {
                     if (data.section === 'body' && data.column.index === 4) {
                         const status = data.cell.raw as string;
                         if (status === 'Pagado') {
-                            data.cell.styles.textColor = [46, 204, 113]; // Green
+                            data.cell.styles.textColor = successColor;
+                            data.cell.styles.fontStyle = 'bold';
                         } else if (status === 'Vencido') {
-                            data.cell.styles.textColor = [231, 76, 60]; // Red
-                        } else if (status === 'Pendiente') {
-                            data.cell.styles.textColor = [0, 0, 0]; // Black
+                            data.cell.styles.textColor = dangerColor;
+                            data.cell.styles.fontStyle = 'bold';
                         }
                     }
                 }
             });
 
-            // Footer
+            // 4. Footer
             const pageCount = (doc as any).internal.getNumberOfPages();
-            doc.setFontSize(8);
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
-                doc.text(`Página ${i} de ${pageCount}`, 196, 285, { align: 'right' });
+                
+                doc.setDrawColor(241, 245, 249);
+                doc.setLineWidth(0.5);
+                doc.line(20, 280, pageWidth - 20, 280);
+
+                doc.setTextColor(...slateMed);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Llavia - Sistema Integral para Propietarios', 20, 286);
+                
+                doc.setTextColor(...primaryColor);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`Página ${i} de ${pageCount}`, pageWidth - 20, 286, { align: 'right' });
             }
 
             doc.save(`reporte_facturacion_${new Date().toISOString().split('T')[0]}.pdf`);
