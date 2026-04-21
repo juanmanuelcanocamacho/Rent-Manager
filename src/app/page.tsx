@@ -146,8 +146,8 @@ export default function LandingPage() {
               transition={{ duration: 0.5 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass border-primary/20 text-primary text-xs sm:text-sm font-semibold mb-6 sm:mb-8 shadow-sm"
             >
-              <Badge variant="success" className="animate-pulse">Nuevo</Badge>
-              <span>Login con @usuario, gestión de encargados y navegación v2.0</span>
+              <Badge variant="success" className="animate-pulse">v2.1</Badge>
+              <span>Verificación de recibos por QR, share directo por WhatsApp y sistema anti-fraude</span>
               <ArrowRight size={14} />
             </motion.div>
 
@@ -339,13 +339,13 @@ export default function LandingPage() {
               <FeatureCard
                 icon={Wallet}
                 title="Cobros Automáticos"
-                description="Genera facturas, envía recordatorios por WhatsApp y recibe notificaciones de pago al instante."
+                description="Genera facturas con QR de seguridad, envía recibos directos por WhatsApp y recibe notificaciones de pago al instante."
                 className="md:col-span-2 bg-gradient-to-br from-card/50 to-emerald-500/5 border-emerald-500/10"
               />
               <FeatureCard
                 icon={ShieldCheck}
                 title="Seguridad Total"
-                description="Tus datos y los de tus inquilinos protegidos con encriptación bancaria de grado militar."
+                description="Sistema anti-fraude con verificación por QR y protección de datos con encriptación de grado bancario."
                 className="bg-gradient-to-br from-card/50 to-primary/5 border-primary/10"
               />
               <FeatureCard
