@@ -19,6 +19,13 @@ model User {
   landlordId     String?         // For Managers: link to their Landlord
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @default(now()) @updatedAt
+  
+  // Legal fields for contracts
+  documentNumber    String?
+  documentIssuedIn  String?
+  maritalStatus     String?
+  legalAddress      String?
+  
   tenantProfile  TenantProfile?  @relation("UserToTenantProfile")
   managedRooms   Room[]          @relation("LandlordRooms")
   managedTenants TenantProfile[] @relation("LandlordTenants")
@@ -42,6 +49,12 @@ model TenantProfile {
   notes             String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @default(now()) @updatedAt
+  
+  // Legal fields for contracts
+  documentIssuedIn  String?
+  maritalStatus     String?
+  currentAddress    String?
+  
   leases            Lease[]
   messages          Message[]
   user              User      @relation("UserToTenantProfile", fields: [userId], references: [id], onDelete: Cascade)
@@ -58,6 +71,11 @@ model Room {
   notes      String?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @default(now()) @updatedAt
+  
+  // Room features for contracts
+  sizeM2     Float?
+  features   String?
+  
   expenses   Expense[]
   leases     Lease[]    @relation("LeaseToRoom")
   landlord   User       @relation("LandlordRooms", fields: [landlordId], references: [id])
@@ -76,6 +94,11 @@ model Lease {
   status          LeaseStatus       @default(ACTIVE)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @default(now()) @updatedAt
+  
+  // Signature tracking
+  signedAt        DateTime?
+  signatureData   String?           // Base64 of the signature or verification hash
+  
   invoices        Invoice[]
   tenant          TenantProfile     @relation(fields: [tenantId], references: [id])
   messages        Message[]

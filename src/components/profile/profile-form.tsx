@@ -14,6 +14,10 @@ interface ProfileFormProps {
         email: string | null;
         phone: string | null;
         country: string;
+        documentNumber: string | null;
+        documentIssuedIn: string | null;
+        maritalStatus: string | null;
+        legalAddress: string | null;
     };
 }
 
@@ -95,6 +99,60 @@ export default function ProfileForm({ user }: ProfileFormProps) {
                                         className="h-12 pl-12"
                                     />
                                 </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card className="p-8">
+                        <div className="flex items-center gap-3 mb-8 border-b pb-4">
+                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                <ShieldCheck size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold">Datos Legales (para Contratos)</h2>
+                                <p className="text-sm text-muted-foreground">Información necesaria para la firma de contratos en Bolivia</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-muted-foreground ml-1 uppercase tracking-wider">Número de C.I. / Documento</label>
+                                <Input 
+                                    name="documentNumber" 
+                                    defaultValue={user.documentNumber || ''} 
+                                    placeholder="Ej: 1234567"
+                                    className="h-12"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-muted-foreground ml-1 uppercase tracking-wider">Expedido en</label>
+                                <Input 
+                                    name="documentIssuedIn" 
+                                    defaultValue={user.documentIssuedIn || ''} 
+                                    placeholder="Ej: Santa Cruz"
+                                    className="h-12"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-muted-foreground ml-1 uppercase tracking-wider">Estado Civil</label>
+                                <Input 
+                                    name="maritalStatus" 
+                                    defaultValue={user.maritalStatus || ''} 
+                                    placeholder="Ej: Soltero / Casado"
+                                    className="h-12"
+                                />
+                            </div>
+
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-sm font-bold text-muted-foreground ml-1 uppercase tracking-wider">Domicilio Completo (Propietario)</label>
+                                <Input 
+                                    name="legalAddress" 
+                                    defaultValue={user.legalAddress || ''} 
+                                    placeholder="Ej: Calle Florida #123, Santa Cruz"
+                                    className="h-12"
+                                />
                             </div>
                         </div>
                     </Card>

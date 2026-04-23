@@ -105,9 +105,23 @@ export default async function TenantsPage() {
                                 <Input name="email" type="email" placeholder="usuario@alquiler.com" />
                                 <p className="text-xs text-muted-foreground mt-1">Opcional. Si se deja vacío, se generará: nombre@alquiler.com</p>
                             </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm font-medium">Nº Documento</label>
+                                    <Input name="documentNumber" placeholder="DNI / CI / Pasaporte" />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">Expedido en</label>
+                                    <Input name="documentIssuedIn" placeholder="Ej: Santa Cruz" />
+                                </div>
+                            </div>
                             <div>
-                                <label className="text-sm font-medium">Nº Documento (Opcional)</label>
-                                <Input name="documentNumber" placeholder="DNI / NIE / Pasaporte" />
+                                <label className="text-sm font-medium">Estado Civil</label>
+                                <Input name="maritalStatus" placeholder="Soltero / Casado / etc." />
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium">Dirección Actual</label>
+                                <Input name="currentAddress" placeholder="Dirección completa del inquilino" />
                             </div>
                             <div>
                                 <label className="text-sm font-medium">Teléfono (WhatsApp)</label>

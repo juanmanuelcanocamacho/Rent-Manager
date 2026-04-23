@@ -14,6 +14,12 @@ export async function updateProfile(prevState: any, formData: FormData) {
     const phone = formData.get('phone') as string;
     const country = formData.get('country') as string;
 
+    // Legal fields
+    const documentNumber = formData.get('documentNumber') as string;
+    const documentIssuedIn = formData.get('documentIssuedIn') as string;
+    const maritalStatus = formData.get('maritalStatus') as string;
+    const legalAddress = formData.get('legalAddress') as string;
+
     const currentPassword = formData.get('currentPassword') as string;
     const newPassword = formData.get('newPassword') as string;
     const confirmPassword = formData.get('confirmPassword') as string;
@@ -57,6 +63,10 @@ export async function updateProfile(prevState: any, formData: FormData) {
             username: username ? username.toLowerCase().replace(/\s+/g, '') : currentUser.username,
             phone,
             country: country as any,
+            documentNumber,
+            documentIssuedIn,
+            maritalStatus,
+            legalAddress,
         };
 
         if (wantsToChangePassword) {

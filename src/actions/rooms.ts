@@ -8,6 +8,8 @@ import { z } from 'zod';
 const createRoomSchema = z.object({
     name: z.string().min(1, "Name is required"),
     notes: z.string().optional(),
+    sizeM2: z.number().optional(),
+    features: z.string().optional(),
 });
 
 export async function createRoom(formData: FormData) {
@@ -16,6 +18,8 @@ export async function createRoom(formData: FormData) {
     const data = {
         name: formData.get('name') as string,
         notes: formData.get('notes') as string,
+        sizeM2: formData.get('sizeM2') ? Number(formData.get('sizeM2')) : undefined,
+        features: formData.get('features') as string,
     };
 
     const parsed = createRoomSchema.parse(data);
@@ -25,6 +29,8 @@ export async function createRoom(formData: FormData) {
             landlordId: landlordId,
             name: parsed.name,
             notes: parsed.notes,
+            sizeM2: parsed.sizeM2,
+            features: parsed.features,
             status: 'AVAILABLE',
         },
     });

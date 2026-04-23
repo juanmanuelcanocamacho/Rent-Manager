@@ -74,8 +74,18 @@ export default async function RoomsPage() {
                                 <Input name="name" placeholder="Ej. Propiedad 1" required />
                             </div>
                             <div>
-                                <label className="text-sm font-medium">Notas</label>
+                                <label className="text-sm font-medium">Notas / Comentarios</label>
                                 <Input name="notes" placeholder="Ej. Exterior, Cama doble..." />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm font-medium">Superficie (m²)</label>
+                                    <Input name="sizeM2" type="number" step="0.1" placeholder="Ej: 12.5" />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-medium">Características (Contrato)</label>
+                                    <Input name="features" placeholder="Ej: ventana, closet, llave..." />
+                                </div>
                             </div>
                             <Button type="submit" className="w-full">Crear Propiedad</Button>
                         </form>

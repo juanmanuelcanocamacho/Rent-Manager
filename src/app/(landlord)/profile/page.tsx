@@ -21,6 +21,10 @@ export default async function ProfilePage() {
             phone: true,
             country: true,
             role: true,
+            documentNumber: true,
+            documentIssuedIn: true,
+            maritalStatus: true,
+            legalAddress: true,
         }
     });
     
