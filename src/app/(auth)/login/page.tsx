@@ -15,13 +15,16 @@ import {
   Zap, 
   ShieldCheck, 
   Wallet,
-  TrendingUp 
+  TrendingUp,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { Button } from "@/components/ui/shared";
 import { cn } from "@/lib/utils";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [showPassword, setShowPassword] = useState(false);
   const [state, formAction, isPending] = useActionState(authAction, undefined);
 
   const toggleMode = () => {
@@ -223,12 +226,20 @@ export default function LoginPage() {
                 <Lock className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <input
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   required
                   min={8}
-                  className="flex h-12 w-full rounded-2xl border-2 border-input bg-background/50 pl-12 pr-4 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all disabled:opacity-50"
+                  className="flex h-12 w-full rounded-2xl border-2 border-input bg-background/50 pl-12 pr-12 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all disabled:opacity-50"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-3.5 text-muted-foreground hover:text-primary transition-colors"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
             </div>
 

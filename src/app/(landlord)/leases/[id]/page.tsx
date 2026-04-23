@@ -4,7 +4,6 @@ import { requireManagementAccess, getLandlordContext } from '@/lib/rbac';
 import { Button, Card, Input } from '@/components/ui/shared';
 import { formatMoney } from '@/lib/money';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
 
 export default async function EditLeasePage({ params }: { params: Promise<{ id: string }> }) {
     await requireManagementAccess();
@@ -21,16 +20,12 @@ export default async function EditLeasePage({ params }: { params: Promise<{ id: 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
             <div>
-                <Button variant="ghost" size="sm" asChild className="mb-4 pl-0 hover:bg-transparent hover:text-primary">
-                    <a href="/leases" className="flex items-center gap-2">
-                        <ArrowLeft size={16} /> Volver a Contratos
-                    </a>
-                </Button>
                 <h1 className="text-3xl font-bold">Editar Contrato</h1>
                 <p className="text-muted-foreground">
                     {lease.tenant.fullName} — {lease.rooms.map(r => r.name).join(', ')}
                 </p>
             </div>
+
 
             <Card className="p-6">
                 <form action={updateLease} className="space-y-6">

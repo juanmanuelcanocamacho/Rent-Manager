@@ -2,22 +2,17 @@ import { createTenant } from '@/actions/tenants';
 import { requireManagementAccess } from '@/lib/rbac';
 import { Button, Card, Input } from '@/components/ui/shared';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { UserPlus, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { UserPlus } from 'lucide-react';
+
 
 export default async function ManagerNewTenantPage() {
     await requireManagementAccess();
 
     return (
         <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" asChild className="rounded-full">
-                    <Link href="/manager/dashboard"><ArrowLeft size={20} /></Link>
-                </Button>
-                <div>
-                    <h1 className="text-3xl font-extrabold tracking-tight">Nuevo Inquilino</h1>
-                    <p className="text-muted-foreground mt-1">Registra los datos básicos del nuevo residente.</p>
-                </div>
+            <div>
+                <h1 className="text-3xl font-extrabold tracking-tight">Nuevo Inquilino</h1>
+                <p className="text-muted-foreground mt-1">Registra los datos básicos del nuevo residente.</p>
             </div>
 
             <Card className="p-6 md:p-8 shadow-xl border-t-4 border-t-emerald-500 rounded-3xl">
@@ -52,12 +47,9 @@ export default async function ManagerNewTenantPage() {
                         </label>
                     </div>
 
-                    <div className="pt-4 flex flex-col gap-3">
-                        <Button type="submit" className="h-14 text-lg font-bold rounded-2xl bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200">
+                    <div className="pt-4">
+                        <Button type="submit" className="w-full h-14 text-lg font-bold rounded-2xl bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200">
                              <UserPlus size={20} className="mr-2" /> Crear Inquilino
-                        </Button>
-                        <Button variant="ghost" asChild className="h-12 text-muted-foreground">
-                            <Link href="/manager/dashboard">Volver</Link>
                         </Button>
                     </div>
                 </form>

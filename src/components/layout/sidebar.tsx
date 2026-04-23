@@ -106,13 +106,20 @@ export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
 
             <div className="p-4 border-t mt-auto">
                 {user && (
-                    <div className="mb-4 px-2">
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                    <div className="mb-4 px-2 flex items-center justify-between gap-1">
+                        <Button
+                            variant={pathname === '/profile' ? 'secondary' : 'ghost'}
+                            className={cn(
+                                "flex-1 justify-start gap-3 px-2 h-auto py-2 overflow-hidden",
+                                pathname === '/profile' && "bg-secondary font-medium"
+                            )}
+                            asChild
+                        >
+                            <Link href="/profile">
+                                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
                                     <Users size={20} />
                                 </div>
-                                <div className="flex flex-col overflow-hidden max-w-[100px]">
+                                <div className="flex flex-col overflow-hidden text-left">
                                     <span className="text-sm font-semibold truncate" title={displayName}>
                                         {displayName}
                                     </span>
@@ -121,9 +128,9 @@ export function Sidebar({ notificationCounts, userRole, user }: SidebarProps) {
                                         {user.role === 'LANDLORD' ? 'PROPIETARIO' : user.role === 'MANAGER' ? 'ENCARGADO' : 'INQUILINO'}
                                     </span>
                                 </div>
-                            </div>
-                            <ThemeToggle />
-                        </div>
+                            </Link>
+                        </Button>
+                        <ThemeToggle />
                     </div>
                 )}
 
@@ -206,7 +213,14 @@ export function MobileHeader({ userRole, user }: {
 
                     <div className="border-t my-2 pt-2 pb-2">
                         {user && (
-                            <div className="flex items-center gap-3 px-3 py-2">
+                            <Link
+                                href="/profile"
+                                onClick={() => setIsOpen(false)}
+                                className={cn(
+                                    "flex items-center gap-3 p-3 rounded-md transition-colors",
+                                    pathname === '/profile' ? "bg-secondary font-medium" : "hover:bg-muted"
+                                )}
+                            >
                                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs border border-primary/20">
                                     <Users size={16} />
                                 </div>
@@ -214,7 +228,7 @@ export function MobileHeader({ userRole, user }: {
                                     <span className="text-sm font-medium">{displayName}</span>
                                     <span className="text-[10px] text-muted-foreground uppercase">{user.role}</span>
                                 </div>
-                            </div>
+                            </Link>
                         )}
                     </div>
 

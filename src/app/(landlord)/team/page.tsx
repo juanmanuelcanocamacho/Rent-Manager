@@ -5,6 +5,7 @@ import { createManager, deleteManager } from '@/actions/team';
 import { UserCog, Trash2, Shield } from 'lucide-react';
 import { Role } from '@prisma/client';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { ResetPasswordDialog } from '@/components/team/reset-password-dialog';
 
 export default async function TeamPage() {
     await requireLandlord();
@@ -47,19 +48,25 @@ export default async function TeamPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <ConfirmDialog
-                                    trigger={
-                                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10">
-                                            <Trash2 size={18} />
-                                        </Button>
-                                    }
-                                    title="Eliminar Encargado"
-                                    description={`¿Seguro que quieres eliminar el acceso de ${manager.name || manager.email}?`}
-                                    onConfirm={async () => {
-                                        'use server';
-                                        return await deleteManager(manager.id);
-                                    }}
-                                />
+                                <div className="flex items-center gap-1">
+                                    <ResetPasswordDialog 
+                                        managerId={manager.id} 
+                                        managerName={manager.name || manager.email || manager.username || ''} 
+                                    />
+                                    <ConfirmDialog
+                                        trigger={
+                                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                                                <Trash2 size={18} />
+                                            </Button>
+                                        }
+                                        title="Eliminar Encargado"
+                                        description={`¿Seguro que quieres eliminar el acceso de ${manager.name || manager.email}?`}
+                                        onConfirm={async () => {
+                                            'use server';
+                                            return await deleteManager(manager.id);
+                                        }}
+                                    />
+                                </div>
                             </Card>
                         ))
                     )}

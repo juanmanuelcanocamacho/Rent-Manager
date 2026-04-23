@@ -86,3 +86,35 @@ export async function deleteManager(id: string) {
         return { error: error instanceof Error ? error.message : "Ocurrió un error al eliminar el encargado." };
     }
 }
+
+export async function resetManagerPassword(managerId: string, formData: FormData) {
+    try {
+        const landlordId = await getLandlordContext();
+        const newPassword = formData.get('password') as string;
+
+        if (!newPassword || newPassword.length < 6) {
+            return { error: "La contraseña debe tener al menos 6 caracteres." };
+        }
+
+        // Verify manager belongs to this landlord
+        const manager = await db.user.findFirst({
+            where: { id: managerId, landlordId: landlordId, role: Role.MANAGER }
+        });
+
+        if (!manager) {
+            return { error: "Encargado no encontrado o no pertenece a tu equipo." };
+        }
+
+        const passwordHash = await hash(newPassword, 10);
+        await db.user.update({
+            where: { id: managerId },
+            data: { passwordHash }
+        });
+
+        revalidatePath('/team');
+        return { success: "Contraseña actualizada correctamente." };
+    } catch (error) {
+        console.error("Error resetting manager password:", error);
+        return { error: "Ocurrió un error al actualizar la contraseña." };
+    }
+}
