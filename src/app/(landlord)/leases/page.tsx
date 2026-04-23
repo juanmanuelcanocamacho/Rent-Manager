@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 import { requireManagementAccess, getLandlordContext } from '@/lib/rbac';
 import { formatMoney } from '@/lib/money';
 import { Badge, Button, Card, Input } from '@/components/ui/shared';
-import { Trash2, Pencil } from 'lucide-react';
+import { Trash2, Pencil, FileText } from 'lucide-react';
 import { Role } from '@prisma/client';
 
 export default async function LeasesPage() {

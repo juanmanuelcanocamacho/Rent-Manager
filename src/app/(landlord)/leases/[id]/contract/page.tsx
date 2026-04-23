@@ -18,7 +18,7 @@ export default async function ContractPage({ params }: { params: Promise<{ id: s
         }
     });
 
-    const landlord = await (db.user as any).findUnique({
+    const landlord = await db.user.findUnique({
         where: { id: landlordId },
     });
 
