@@ -79,35 +79,43 @@ export default async function LeasesPage() {
                             {/* Actions - Landlord Only */}
                             {isLandlord && (
                                 <>
-                                    {lease.status === 'ACTIVE' && (
-                                        <div className="flex gap-2 mt-4">
-                                            <ConfirmDialog
-                                                trigger={
-                                                    <Button variant="secondary" size="sm">Finalizar Contrato</Button>
-                                                }
-                                                title="Finalizar Contrato"
-                                                description="Se mantendrá el historial pero se cancelarán las facturas futuras. ¿Continuar?"
-                                                onConfirm={async () => {
-                                                    'use server';
-                                                    return await endLease(lease.id);
-                                                }}
-                                            />
+                                    <div className="flex gap-2 mt-4 flex-wrap">
+                                        <Button variant="outline" size="sm" asChild className="flex items-center gap-2">
+                                            <a href={`/leases/${lease.id}/contract`}>
+                                                <FileText size={16} /> Ver Contrato
+                                            </a>
+                                        </Button>
 
-                                            <ConfirmDialog
-                                                trigger={
-                                                    <Button variant="destructive" size="sm" className="px-3">
-                                                        <Trash2 size={16} />
-                                                    </Button>
-                                                }
-                                                title="Eliminar Contrato"
-                                                description="¿Estás seguro de eliminar este contrato? Se borrarán todas las facturas y datos asociados."
-                                                onConfirm={async () => {
-                                                    'use server';
-                                                    return await deleteLease(lease.id);
-                                                }}
-                                            />
-                                        </div>
-                                    )}
+                                        {lease.status === 'ACTIVE' && (
+                                            <>
+                                                <ConfirmDialog
+                                                    trigger={
+                                                        <Button variant="secondary" size="sm">Finalizar Contrato</Button>
+                                                    }
+                                                    title="Finalizar Contrato"
+                                                    description="Se mantendrá el historial pero se cancelarán las facturas futuras. ¿Continuar?"
+                                                    onConfirm={async () => {
+                                                        'use server';
+                                                        return await endLease(lease.id);
+                                                    }}
+                                                />
+
+                                                <ConfirmDialog
+                                                    trigger={
+                                                        <Button variant="destructive" size="sm" className="px-3">
+                                                            <Trash2 size={16} />
+                                                        </Button>
+                                                    }
+                                                    title="Eliminar Contrato"
+                                                    description="¿Estás seguro de eliminar este contrato? Se borrarán todas las facturas y datos asociados."
+                                                    onConfirm={async () => {
+                                                        'use server';
+                                                        return await deleteLease(lease.id);
+                                                    }}
+                                                />
+                                            </>
+                                        )}
+                                    </div>
 
                                     {lease.status !== 'ACTIVE' && (
                                         <div className="mt-4 flex justify-end">
